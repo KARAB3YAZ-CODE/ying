@@ -14,6 +14,7 @@
         <div class="letter l1">İ</div>
         <div class="letter l2">N</div>
         <div class="letter l3">G</div>
+        <div class="logo-underline" id="underline"></div>
         <div class="logo-final" id="logoFinal">Ying</div>
       </div>
     </div>
@@ -22,6 +23,7 @@
   <script>
     (function() {
       var letters = document.querySelectorAll('.letter');
+      var underline = document.getElementById('underline');
       var finalLogo = document.getElementById('logoFinal');
 
       var delay = 0;
@@ -29,20 +31,25 @@
         setTimeout(function() {
           el.classList.add('pop');
           setTimeout(function() {
-            el.style.setProperty('--dx', (i * 25 + 80) * (i % 2 === 0 ? 1 : -1) + 'px');
+            el.style.setProperty('--dx', (i * 30 + 100) * (i % 2 === 0 ? 1 : -1) + 'px');
+            el.style.setProperty('--dr', (i * 10 + 20) * (i % 2 === 0 ? 1 : -1) + 'deg');
             el.classList.add('fly');
-          }, 700);
+          }, 600);
         }, delay);
-        delay += 250;
+        delay += 300;
       });
 
       setTimeout(function() {
+        underline.classList.add('draw');
+      }, delay - 200);
+
+      setTimeout(function() {
         finalLogo.classList.add('reveal');
-      }, delay + 900);
+      }, delay + 600);
 
       setTimeout(function() {
         window.location.href = '/login';
-      }, delay + 2500);
+      }, delay + 2800);
     })();
   </script>
 </body>

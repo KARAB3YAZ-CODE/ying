@@ -8,22 +8,43 @@ body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background: #141414;
   color: #fff;
-  min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ── SPLASH / LOCK ── */
+/* ── SPLASH ── */
 .splash {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #000;
   overflow: hidden;
+  position: relative;
+}
+
+.splash::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(229,9,20,0.12) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: glowPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from { opacity: 0.3; transform: translate(-50%, -50%) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
 }
 
 .splash-inner {
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .logo-anim {
@@ -40,7 +61,6 @@ body {
   font-weight: 900;
   color: #e50914;
   opacity: 0;
-  transform: scale(3);
 }
 
 .logo-anim .letter.l0 { left: 0; }
@@ -49,22 +69,44 @@ body {
 .logo-anim .letter.l3 { left: 380px; }
 
 .logo-anim .letter.pop {
-  animation: popIn 0.5s cubic-bezier(0.5, 0, 0.1, 1) forwards;
+  animation: popIn 0.45s cubic-bezier(0.5, 0, 0.1, 1) forwards;
 }
 
 @keyframes popIn {
-  0% { opacity: 0; transform: scale(3); }
-  70% { opacity: 1; transform: scale(0.85); }
-  100% { opacity: 1; transform: scale(1); }
+  0% { opacity: 0; transform: scale(4) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(0.85) rotate(2deg); }
+  80% { transform: scale(1.05) rotate(-1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
 .logo-anim .letter.fly {
-  animation: flyOut 0.8s cubic-bezier(0.5, 0, 0.1, 1) forwards;
+  animation: flyOut 0.7s cubic-bezier(0.5, 0, 0.1, 1) forwards;
 }
 
 @keyframes flyOut {
-  0% { opacity: 1; transform: translateX(0) scale(1); }
-  100% { opacity: 0; transform: translateX(var(--dx, 200px)) scale(0.4); }
+  0% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateX(var(--dx, 200px)) scale(0.3) rotate(var(--dr, 30deg)); }
+}
+
+.logo-underline {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 4px;
+  background: #e50914;
+  border-radius: 2px;
+  opacity: 0;
+}
+
+.logo-underline.draw {
+  animation: drawLine 0.6s cubic-bezier(0.5, 0, 0.1, 1) forwards;
+}
+
+@keyframes drawLine {
+  from { width: 0; opacity: 0; }
+  to { width: 80%; opacity: 1; }
 }
 
 .logo-final {
@@ -78,17 +120,20 @@ body {
   opacity: 0;
   letter-spacing: -3px;
   line-height: 1;
+  text-shadow: 0 0 60px rgba(229,9,20,0.3);
 }
 
 .logo-final.reveal {
-  animation: revealLogo 1.4s cubic-bezier(0.5, 0, 0.1, 1) forwards;
+  animation: revealLogo 1.6s cubic-bezier(0.5, 0, 0.1, 1) forwards;
 }
 
 @keyframes revealLogo {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
-  35% { opacity: 1; transform: translate(-50%, -50%) scale(1.35); }
-  65% { transform: translate(-50%, -50%) scale(0.92); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); filter: blur(20px); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.4); filter: blur(0); }
+  50% { transform: translate(-50%, -50%) scale(0.9); }
+  70% { transform: translate(-50%, -50%) scale(1.05); }
+  85% { transform: translate(-50%, -50%) scale(0.98); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
 }
 
 /* ── PROFILE SELECTION ── */
@@ -97,8 +142,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
+  min-height: 100dvh;
+  padding: 2rem 1.5rem;
   animation: fadeUp 0.6s ease;
 }
 
@@ -108,22 +153,22 @@ body {
 }
 
 .profile-screen .brand {
-  font-size: 3rem;
+  font-size: 2.8rem;
   font-weight: 900;
   color: #e50914;
   letter-spacing: -2px;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .profile-screen .tagline {
   color: #808080;
-  font-size: 1.05rem;
-  margin-bottom: 3rem;
+  font-size: 1rem;
+  margin-bottom: 2.5rem;
 }
 
 .profile-grid {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -139,16 +184,17 @@ body {
   color: #fff;
   padding: 0;
   transition: transform 0.25s ease;
+  min-width: 100px;
 }
 
-.profile-card:hover {
-  transform: scale(1.06);
+.profile-card:active {
+  transform: scale(0.95);
 }
 
 .profile-avatar {
   width: 130px;
   height: 130px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,7 +202,7 @@ body {
   font-weight: 700;
   color: #fff;
   border: 3px solid transparent;
-  transition: border-color 0.25s, box-shadow 0.25s;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
   position: relative;
   overflow: hidden;
 }
@@ -195,7 +241,7 @@ body {
 }
 
 .profile-name {
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: #808080;
   transition: color 0.25s;
 }
@@ -214,6 +260,7 @@ body {
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .modal-overlay.active {
@@ -229,21 +276,22 @@ body {
 .modal {
   background: #1a1a1a;
   padding: 2.5rem 2rem 2rem;
-  border-radius: 14px;
+  border-radius: 16px;
   text-align: center;
   width: 92%;
   max-width: 380px;
   box-shadow: 0 25px 60px rgba(0,0,0,0.5);
   animation: modalSlide 0.35s cubic-bezier(0.5, 0, 0.1, 1);
+  margin: 1rem;
 }
 
 @keyframes modalSlide {
-  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .modal h2 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 500;
   margin-bottom: 0.3rem;
   color: #ccc;
@@ -252,9 +300,9 @@ body {
 .modal .modal-name {
   color: #e50914;
   font-weight: 700;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   display: block;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .modal input {
@@ -262,7 +310,7 @@ body {
   padding: 0.9rem 1rem;
   background: #333;
   border: 1px solid #555;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #fff;
   font-size: 1rem;
   outline: none;
@@ -285,15 +333,17 @@ body {
   background: #e50914;
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.modal .btn-primary:hover {
+.modal .btn-primary:active {
   background: #f40612;
+  transform: scale(0.98);
 }
 
 .modal .btn-cancel {
@@ -302,16 +352,17 @@ body {
   background: transparent;
   color: #808080;
   border: 1px solid #444;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
   cursor: pointer;
   margin-top: 0.5rem;
   transition: all 0.2s;
 }
 
-.modal .btn-cancel:hover {
+.modal .btn-cancel:active {
   color: #fff;
   border-color: #808080;
+  background: #2a2a2a;
 }
 
 .modal .error {
@@ -322,16 +373,15 @@ body {
 
 /* ── NOTES PAGE ── */
 .notes-page {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-/* Top Nav */
 .top-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 4%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+  padding: 0.85rem 5%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0) 100%);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -343,7 +393,7 @@ body {
 }
 
 .top-nav .nav-brand {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 900;
   color: #e50914;
   letter-spacing: -1px;
@@ -352,29 +402,30 @@ body {
 .top-nav .nav-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .top-nav .nav-user {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   color: #ccc;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .top-nav .nav-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #fff;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .top-nav .nav-avatar .avatar-initial {
@@ -396,39 +447,39 @@ body {
   background: transparent;
   color: #ccc;
   border: 1px solid #555;
-  padding: 0.35rem 0.9rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.btn-nav:hover {
+.btn-nav:active {
   color: #fff;
   border-color: #fff;
+  background: rgba(255,255,255,0.1);
 }
 
-/* Content Area */
 .content-area {
   max-width: 780px;
   margin: -0.5rem auto 0;
-  padding: 0 4% 4rem;
+  padding: 0 5% 5rem;
   position: relative;
   z-index: 1;
 }
 
 .section-title {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  margin: 1.5rem 0 1rem;
+  margin: 1.2rem 0 0.85rem;
 }
 
-/* Compose Card */
 .compose-card {
   background: #1f1f1f;
-  border-radius: 10px;
-  padding: 1.25rem;
-  margin-bottom: 2rem;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
   border: 1px solid #2a2a2a;
   transition: border-color 0.2s;
 }
@@ -439,7 +490,7 @@ body {
 
 .compose-card textarea {
   width: 100%;
-  padding: 0.6rem 0;
+  padding: 0.5rem 0;
   background: transparent;
   border: none;
   color: #fff;
@@ -447,7 +498,8 @@ body {
   resize: vertical;
   outline: none;
   font-family: inherit;
-  min-height: 50px;
+  min-height: 44px;
+  line-height: 1.5;
 }
 
 .compose-card textarea::placeholder {
@@ -458,23 +510,24 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
+  padding-top: 0.65rem;
   border-top: 1px solid #2a2a2a;
 }
 
 .photo-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.8rem;
-  border-radius: 4px;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
   color: #808080;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 36px;
 }
 
-.photo-label:hover {
+.photo-label:active {
   color: #fff;
   background: #2a2a2a;
 }
@@ -482,6 +535,7 @@ body {
 .photo-label svg {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .photo-label input[type="file"] {
@@ -489,64 +543,67 @@ body {
 }
 
 .btn-submit {
-  padding: 0.5rem 1.6rem;
+  padding: 0.5rem 1.4rem;
   background: #e50914;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.btn-submit:hover {
+.btn-submit:active {
   background: #f40612;
+  transform: scale(0.97);
 }
 
-/* Entry Card (note/photo) */
 .entry {
   background: #1f1f1f;
-  border-radius: 10px;
-  margin-bottom: 0.85rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid #2a2a2a;
 }
 
-.entry:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+.entry:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .entry-inner {
-  padding: 1.25rem;
+  padding: 1rem 1.1rem;
 }
 
 .entry-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 .entry-date {
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .btn-entry-del {
   background: transparent;
   color: #555;
   border: none;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
   transition: all 0.2s;
+  min-height: 32px;
 }
 
-.btn-entry-del:hover {
+.btn-entry-del:active {
   color: #e50914;
   background: rgba(229,9,20,0.1);
 }
@@ -555,32 +612,25 @@ body {
   color: #ccc;
   line-height: 1.6;
   white-space: pre-wrap;
-  font-size: 0.95rem;
+  font-size: 0.93rem;
 }
 
 .entry-photo {
   display: block;
   width: 100%;
-  max-height: 520px;
+  max-height: 500px;
   object-fit: cover;
-  cursor: pointer;
-  transition: opacity 0.2s;
 }
 
-.entry-photo:hover {
-  opacity: 0.95;
-}
-
-/* Empty state */
 .empty-state {
   text-align: center;
-  padding: 5rem 1rem 3rem;
+  padding: 4rem 1rem 2rem;
 }
 
 .empty-state .empty-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1.25rem;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.2rem;
   border-radius: 50%;
   background: #1f1f1f;
   display: flex;
@@ -590,22 +640,22 @@ body {
 }
 
 .empty-state .empty-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
 }
 
 .empty-state p {
   color: #555;
-  font-size: 1.05rem;
+  font-size: 1rem;
   margin-bottom: 0.3rem;
 }
 
 .empty-state span {
   color: #444;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
-/* ── RESPONSIVE ── */
+/* ── MOBILE ── */
 @media (max-width: 640px) {
   .logo-anim {
     width: 300px;
@@ -621,27 +671,63 @@ body {
   .logo-final {
     font-size: 60px;
   }
+  .splash::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .profile-screen {
+    padding: 1.5rem 1rem;
+  }
   .profile-screen .brand {
-    font-size: 2.2rem;
+    font-size: 2rem;
+  }
+  .profile-screen .tagline {
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .profile-grid {
+    gap: 1rem;
   }
   .profile-avatar {
     width: 100px;
     height: 100px;
     font-size: 40px;
+    border-radius: 10px;
   }
-  .profile-grid {
-    gap: 1.25rem;
+  .profile-name {
+    font-size: 0.88rem;
   }
-  .top-nav {
-    padding: 0.75rem 4%;
+
+  .modal {
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: 14px;
+    width: 94%;
   }
-  .top-nav .nav-brand {
+  .modal .modal-name {
     font-size: 1.4rem;
   }
+
+  .top-nav {
+    padding: 0.7rem 5%;
+  }
+  .top-nav .nav-brand {
+    font-size: 1.3rem;
+  }
+  .top-nav .nav-user span {
+    display: none;
+  }
+
   .content-area {
-    padding: 0 4% 3rem;
+    padding: 0 5% 4rem;
   }
   .section-title {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+  }
+  .entry-inner {
+    padding: 0.85rem 1rem;
+  }
+  .compose-card {
+    padding: 0.85rem;
   }
 }
