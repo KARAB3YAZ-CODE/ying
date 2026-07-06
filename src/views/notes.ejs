@@ -26,22 +26,50 @@
     <!-- HERO -->
     <% if (notes.length > 0) { %>
     <% var hero = notes[0]; %>
+    <% var heroType = hero.photo ? hero.content ? 'Fotoğraflı Not' : 'Fotoğraf' : 'Not'; %>
     <div class="hero-section" style="<%= hero.photo ? 'background-image: url(' + hero.photo + ')' : 'background: linear-gradient(135deg, #1f1f1f, #2a2a2a)' %>">
-      <div class="hero-shadow"></div>
+      <div class="hero-gradient"></div>
+      <div class="hero-vignette"></div>
       <div class="hero-content">
-        <div class="hero-badge">En Son</div>
-        <h2 class="hero-title"><%= hero.content ? hero.content.slice(0, 60) : 'Fotoğraf' %></h2>
+        <div class="hero-badge-group">
+          <span class="hero-badge">En Son</span>
+          <span class="hero-badge hero-badge-type"><%= heroType %></span>
+          <% if (hero.content && hero.content.length > 80) { %><span class="hero-badge hero-badge-long">Uzun Anı</span><% } %>
+        </div>
+        <h2 class="hero-title"><%= hero.content ? hero.content.slice(0, 80) : '📷 Bir Fotoğraf' %></h2>
+        <% if (hero.content && hero.content.length > 80) { %>
+        <p class="hero-desc"><%= hero.content.slice(0, 200) %><% if (hero.content.length > 200) { %>…<% } %></p>
+        <% } %>
         <div class="hero-meta">
-          <span><%= new Date(hero.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
+          <span class="hero-year"><%= new Date(hero.createdAt).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
           <span class="hero-dot">·</span>
-          <span><%= hero.author %></span>
+          <span class="hero-author"><%= hero.author %></span>
+        </div>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn-primary" onclick="openNote('<%= hero.id %>')">▶ Anıyı Aç</button>
+          <button class="hero-btn hero-btn-secondary" onclick="document.querySelector('.compose-input').focus();">+ Yeni Anı</button>
+        </div>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="hero-section hero-empty" style="background: linear-gradient(135deg, #1a1a1a, #0d0d0d)">
+      <div class="hero-gradient"></div>
+      <div class="hero-vignette"></div>
+      <div class="hero-content">
+        <div class="hero-badge-group">
+          <span class="hero-badge">Hoş Geldin</span>
+        </div>
+        <h2 class="hero-title">Henüz anın yok</h2>
+        <p class="hero-desc">İlk anını yaz veya bir fotoğraf yükle — burası senin özel anılar koleksiyonun.</p>
+        <div class="hero-actions">
+          <button class="hero-btn hero-btn-primary" onclick="document.querySelector('.compose-input').focus();">+ İlk Anını Oluştur</button>
         </div>
       </div>
     </div>
     <% } %>
 
     <div class="browse-content">
-      <!-- COMPOSE -->
+      <!-- COMPOSE BAR -->
       <div class="compose-bar">
         <form method="POST" action="/notes" enctype="multipart/form-data" class="compose-form">
           <input name="content" placeholder="Ne düşünüyorsun?" class="compose-input">
@@ -57,76 +85,83 @@
       <section class="row">
         <div class="row-header">
           <h3>Tüm Anılar</h3>
-          <span class="row-count"><%= notes.length %></span>
+          <% if (notes.length > 0) { %><a href="#" class="row-seeall" onclick="document.querySelector('#row-all').scrollLeft = 0; return false;">Tümünü Gör</a><% } %>
         </div>
         <% if (notes.length === 0) { %>
-        <div class="row-empty">
-          <p>Henüz anın yok — ilk notu yaz veya fotoğraf yükle</p>
-        </div>
+        <div class="row-empty">Henüz anın yok</div>
         <% } else { %>
-        <div class="row-scroll">
+        <div class="row-scroll" id="row-all">
           <% notes.forEach(function(note) { %>
-          <a class="card" onclick="openNote('<%= note.id %>')">
+          <div class="card" onclick="openNote('<%= note.id %>')">
             <div class="card-art" style="<%= note.photo ? 'background-image: url(' + note.photo + ')' : 'background: linear-gradient(135deg, #2a2a2a, #1f1f1f)' %>">
               <% if (!note.photo) { %>
               <div class="card-noimg"><%= note.content ? note.content[0].toUpperCase() : '📝' %></div>
               <% } %>
-              <div class="card-overlay">
-                <div class="card-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></div>
+              <div class="card-hover">
+                <span class="card-hover-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
+                <span class="card-hover-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></span>
+              </div>
+              <div class="card-bottom">
+                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
+                <span class="card-bottom-author"><%= note.author %></span>
               </div>
             </div>
-            <div class="card-title"><%= note.content ? note.content.slice(0, 40) : '📷 Fotoğraf' %></div>
-            <div class="card-author"><%= note.author %></div>
-          </a>
+          </div>
           <% }) %>
         </div>
         <% } %>
       </section>
 
-      <!-- ROW: Sadece Fotoğraflar -->
+      <!-- ROW: Fotoğraflar -->
       <% var photos = notes.filter(function(n) { return n.photo; }); %>
       <% if (photos.length > 0) { %>
       <section class="row">
         <div class="row-header">
           <h3>Fotoğraflar</h3>
-          <span class="row-count"><%= photos.length %></span>
+          <a href="#" class="row-seeall" onclick="document.querySelector('#row-photos').scrollLeft = 0; return false;">Tümünü Gör</a>
         </div>
-        <div class="row-scroll">
+        <div class="row-scroll" id="row-photos">
           <% photos.forEach(function(note) { %>
-          <a class="card card-photo" onclick="openNote('<%= note.id %>')">
+          <div class="card" onclick="openNote('<%= note.id %>')">
             <div class="card-art" style="background-image: url(<%= note.photo %>)">
-              <div class="card-overlay">
-                <div class="card-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></div>
+              <div class="card-hover">
+                <span class="card-hover-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
+                <span class="card-hover-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></span>
+              </div>
+              <div class="card-bottom">
+                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
+                <span class="card-bottom-author"><%= note.author %></span>
               </div>
             </div>
-            <div class="card-title"><%= note.content ? note.content.slice(0, 30) : '📷 Fotoğraf' %></div>
-            <div class="card-author"><%= note.author %></div>
-          </a>
+          </div>
           <% }) %>
         </div>
       </section>
       <% } %>
 
-      <!-- ROW: Sadece Notlar -->
+      <!-- ROW: Notlar -->
       <% var textNotes = notes.filter(function(n) { return !n.photo; }); %>
       <% if (textNotes.length > 0) { %>
       <section class="row">
         <div class="row-header">
           <h3>Notlar</h3>
-          <span class="row-count"><%= textNotes.length %></span>
+          <a href="#" class="row-seeall" onclick="document.querySelector('#row-text').scrollLeft = 0; return false;">Tümünü Gör</a>
         </div>
-        <div class="row-scroll">
+        <div class="row-scroll" id="row-text">
           <% textNotes.forEach(function(note) { %>
-          <a class="card card-text" onclick="openNote('<%= note.id %>')">
+          <div class="card" onclick="openNote('<%= note.id %>')">
             <div class="card-art" style="background: linear-gradient(135deg, <%= note.author === 'Yunus' ? '#e50914' : note.author === 'İrem' ? '#e87c03' : note.author === 'Nursene' ? '#5fa33e' : '#0080ff' %>22, #1a1a1a)">
-              <div class="card-noimg" style="font-size:1.4rem"><%= note.content ? note.content.slice(0, 1).toUpperCase() : '📝' %></div>
-              <div class="card-overlay">
-                <div class="card-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></div>
+              <div class="card-noimg" style="font-size:1.6rem"><%= note.content ? note.content.slice(0, 1).toUpperCase() : '📝' %></div>
+              <div class="card-hover">
+                <span class="card-hover-title"><%= note.content ? note.content.slice(0, 50) : 'Not' %></span>
+                <span class="card-hover-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></span>
+              </div>
+              <div class="card-bottom">
+                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : 'Not' %></span>
+                <span class="card-bottom-author"><%= note.author %></span>
               </div>
             </div>
-            <div class="card-title"><%= note.content ? note.content.slice(0, 40) : 'Not' %></div>
-            <div class="card-author"><%= note.author %></div>
-          </a>
+          </div>
           <% }) %>
         </div>
       </section>
