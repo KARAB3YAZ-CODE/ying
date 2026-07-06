@@ -33,6 +33,13 @@ export function createApp() {
   app.use(authRoutes);
   app.use('/notes', requireMember, notesRoutes(upload));
 
+  // safety net: any error passed to next() (e.g. via asyncHandler) ends up
+  // here instead of hanging the request or crashing the whole function
+  app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send('Bir şeyler ters gitti, lütfen tekrar dene.');
+  });
+
   return app;
 }
 

@@ -32,7 +32,12 @@ async function readValue(key, filename) {
 }
 
 async function writeValue(key, filename, data) {
-  if (!redis) return writeLocalJSON(filename, data);
+  if (!redis) {
+    if (process.env.VERCEL) {
+      throw new Error('Redis yapılandırılmamış (UPSTASH_REDIS_REST_URL/TOKEN veya KV_REST_API_URL/TOKEN eksik).');
+    }
+    return writeLocalJSON(filename, data);
+  }
   await redis.set(key, data);
 }
 

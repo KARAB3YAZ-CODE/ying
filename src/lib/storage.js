@@ -24,6 +24,10 @@ export async function savePhoto(file) {
     return blob.url;
   }
 
+  if (process.env.VERCEL) {
+    throw new Error('BLOB_READ_WRITE_TOKEN tanımlı değil - Vercel Blob store projeye bağlı değil.');
+  }
+
   await mkdir(UPLOADS_DIR, { recursive: true });
   await writeFile(join(UPLOADS_DIR, filename), file.buffer);
   return '/uploads/' + filename;

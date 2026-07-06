@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getConfig } from '../lib/db.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 
 const router = Router();
 
@@ -8,13 +9,13 @@ router.get('/', (req, res) => {
   res.render('lock');
 });
 
-router.get('/login', async (req, res) => {
+router.get('/login', asyncHandler(async (req, res) => {
   if (req.session.member) return res.redirect('/notes');
   const config = await getConfig();
   res.render('login', { members: config.members, error: null });
-});
+}));
 
-router.post('/login', async (req, res) => {
+router.post('/login', asyncHandler(async (req, res) => {
   const config = await getConfig();
   const { name, password } = req.body;
   const member = config.members.find(
@@ -25,7 +26,7 @@ router.post('/login', async (req, res) => {
     return res.redirect('/notes');
   }
   res.render('login', { members: config.members, error: 'Yanlış şifre!' });
-});
+}));
 
 router.post('/logout', (req, res) => {
   req.session = null;

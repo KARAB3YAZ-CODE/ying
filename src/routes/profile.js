@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { getConfig, saveConfig } from '../lib/db.js';
 import { savePhoto } from '../lib/storage.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 
 export default function profileRoutes(upload) {
   const router = Router();
 
-  router.post('/photo', upload.single('photo'), async (req, res) => {
+  router.post('/photo', upload.single('photo'), asyncHandler(async (req, res) => {
     const file = req.file;
     if (!file) return res.redirect('/notes');
 
@@ -16,7 +17,7 @@ export default function profileRoutes(upload) {
       await saveConfig(config);
     }
     res.redirect('/notes');
-  });
+  }));
 
   return router;
 }
