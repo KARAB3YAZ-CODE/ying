@@ -8,6 +8,8 @@
 </head>
 <body>
   <div class="splash">
+    <div class="splash-glow"></div>
+    <div class="splash-glow-snd"></div>
     <div class="splash-inner">
       <div class="logo-anim" id="logoAnim">
         <div class="letter l0">Y</div>
@@ -18,6 +20,10 @@
         <div class="logo-final" id="logoFinal">Ying</div>
       </div>
     </div>
+    <div class="splash-dust" id="dust0"></div>
+    <div class="splash-dust" id="dust1"></div>
+    <div class="splash-dust" id="dust2"></div>
+    <div class="splash-dust" id="dust3"></div>
   </div>
 
   <script>
@@ -25,31 +31,79 @@
       var letters = document.querySelectorAll('.letter');
       var underline = document.getElementById('underline');
       var finalLogo = document.getElementById('logoFinal');
+      var glow = document.querySelector('.splash-glow');
+      var dust = document.querySelectorAll('.splash-dust');
 
-      var delay = 0;
+      // Phase 1: glow build-up
+      setTimeout(function() {
+        glow.style.opacity = '1';
+      }, 200);
+
+      // Phase 2: letters materialize one by one
+      var delay = 600;
+      var phase2start = delay;
       letters.forEach(function(el, i) {
         setTimeout(function() {
-          el.classList.add('pop');
-          setTimeout(function() {
-            el.style.setProperty('--dx', (i * 30 + 100) * (i % 2 === 0 ? 1 : -1) + 'px');
-            el.style.setProperty('--dr', (i * 10 + 20) * (i % 2 === 0 ? 1 : -1) + 'deg');
-            el.classList.add('fly');
-          }, 600);
+          el.classList.add('materialize');
+          // impact glow
+          var burst = document.createElement('div');
+          burst.className = 'letter-burst';
+          el.appendChild(burst);
+          setTimeout(function() { burst.remove(); }, 600);
         }, delay);
-        delay += 300;
+        delay += 280;
       });
 
+      // Phase 3: underline with dramatic sweep
+      var underlineDelay = delay + 300;
       setTimeout(function() {
         underline.classList.add('draw');
-      }, delay - 200);
+        // glow flash on underline
+        glow.style.opacity = '0.6';
+        setTimeout(function() { glow.style.opacity = '0.15'; }, 400);
+      }, underlineDelay);
 
+      // Phase 4: letters scatter, YING reveals with shockwave
+      var revealDelay = underlineDelay + 900;
+      setTimeout(function() {
+        letters.forEach(function(el, i) {
+          setTimeout(function() {
+            el.style.setProperty('--dx', (i * 50 + 120) * (i % 2 === 0 ? 1 : -1) + 'px');
+            el.style.setProperty('--dr', (i * 15 + 25) * (i % 2 === 0 ? 1 : -1) + 'deg');
+            el.classList.add('scatter');
+          }, i * 80);
+        });
+
+        // big light pulse
+        glow.style.opacity = '1';
+        document.querySelector('.splash-glow-snd').style.opacity = '0.7';
+
+        // dust particles fly
+        dust.forEach(function(d, i) {
+          d.style.opacity = '1';
+          d.style.setProperty('--dx', (Math.random() > 0.5 ? 1 : -1) * (100 + Math.random() * 200) + 'px');
+          d.style.setProperty('--dy', -(100 + Math.random() * 200) + 'px');
+          d.classList.add('fly');
+        });
+      }, revealDelay);
+
+      // Phase 5: YING logo appears after scatter
       setTimeout(function() {
         finalLogo.classList.add('reveal');
-      }, delay + 600);
+        // pulse glow contracts
+        setTimeout(function() {
+          glow.style.opacity = '0.3';
+          document.querySelector('.splash-glow-snd').style.opacity = '0';
+        }, 300);
+      }, revealDelay + 420);
 
+      // Phase 6: transition to login
       setTimeout(function() {
-        window.location.href = '/login';
-      }, delay + 2800);
+        finalLogo.classList.add('fade');
+        setTimeout(function() {
+          window.location.href = '/login';
+        }, 800);
+      }, revealDelay + 3200);
     })();
   </script>
 </body>
