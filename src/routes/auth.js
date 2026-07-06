@@ -29,7 +29,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/lock');
+  res.redirect('/');
 });
 
 export default router;

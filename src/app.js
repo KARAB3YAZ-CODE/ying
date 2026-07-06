@@ -39,11 +39,6 @@ export function createApp() {
   app.use(authRoutes);
   app.use('/notes', requireMember, notesRoutes(upload));
 
-  app.get('/', (req, res) => {
-    if (!req.session.member) return res.redirect('/lock');
-    res.redirect('/notes');
-  });
-
   return app;
 }
 
