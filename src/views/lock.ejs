@@ -8,8 +8,10 @@
 </head>
 <body>
   <div class="splash">
+    <div class="splash-rays" id="rays"></div>
     <div class="splash-glow"></div>
     <div class="splash-glow-snd"></div>
+    <div class="splash-flash" id="flash"></div>
     <div class="splash-inner">
       <div class="logo-anim" id="logoAnim">
         <div class="letter l0">Y</div>
@@ -32,16 +34,28 @@
       var underline = document.getElementById('underline');
       var finalLogo = document.getElementById('logoFinal');
       var glow = document.querySelector('.splash-glow');
+      var glowSnd = document.querySelector('.splash-glow-snd');
+      var rays = document.getElementById('rays');
+      var flash = document.getElementById('flash');
       var dust = document.querySelectorAll('.splash-dust');
+
+      // durations mirror the CSS animation-durations so phases never overlap
+      var LETTER_START = 500;
+      var LETTER_STAGGER = 250;
+      var MATERIALIZE_DURATION = 700; // .materialize
+      var UNDERLINE_DRAW_DURATION = 500; // .draw
+      var SCATTER_STAGGER = 80;
+      var SCATTER_DURATION = 700; // .scatter
+      var REVEAL_DURATION = 2000; // .reveal
+      var FADE_DURATION = 800; // .fade
 
       // Phase 1: glow build-up
       setTimeout(function() {
         glow.style.opacity = '1';
+        rays.classList.add('show');
       }, 200);
 
       // Phase 2: letters materialize one by one
-      var delay = 600;
-      var phase2start = delay;
       letters.forEach(function(el, i) {
         setTimeout(function() {
           el.classList.add('materialize');
@@ -50,60 +64,66 @@
           burst.className = 'letter-burst';
           el.appendChild(burst);
           setTimeout(function() { burst.remove(); }, 600);
-        }, delay);
-        delay += 280;
+        }, LETTER_START + i * LETTER_STAGGER);
       });
+      var lettersMaterializedAt = LETTER_START + (letters.length - 1) * LETTER_STAGGER + MATERIALIZE_DURATION;
 
-      // Phase 3: underline with dramatic sweep
-      var underlineDelay = delay + 300;
+      // Phase 3: underline with dramatic sweep (starts once the last letter has landed)
+      var underlineDelay = lettersMaterializedAt + 150;
       setTimeout(function() {
         underline.classList.add('draw');
         // glow flash on underline
         glow.style.opacity = '0.6';
         setTimeout(function() { glow.style.opacity = '0.15'; }, 400);
       }, underlineDelay);
+      var underlineDrawnAt = underlineDelay + UNDERLINE_DRAW_DURATION;
 
-      // Phase 4: letters scatter, YING reveals with shockwave
-      var revealDelay = underlineDelay + 900;
+      // Phase 4: letters scatter, YING reveals with shockwave (starts once the underline has finished drawing)
+      var revealDelay = underlineDrawnAt + 200;
       setTimeout(function() {
         letters.forEach(function(el, i) {
           setTimeout(function() {
             el.style.setProperty('--dx', (i * 50 + 120) * (i % 2 === 0 ? 1 : -1) + 'px');
             el.style.setProperty('--dr', (i * 15 + 25) * (i % 2 === 0 ? 1 : -1) + 'deg');
             el.classList.add('scatter');
-          }, i * 80);
+          }, i * SCATTER_STAGGER);
         });
 
         // big light pulse
         glow.style.opacity = '1';
-        document.querySelector('.splash-glow-snd').style.opacity = '0.7';
+        glowSnd.style.opacity = '0.7';
 
         // dust particles fly
-        dust.forEach(function(d, i) {
+        dust.forEach(function(d) {
           d.style.opacity = '1';
           d.style.setProperty('--dx', (Math.random() > 0.5 ? 1 : -1) * (100 + Math.random() * 200) + 'px');
           d.style.setProperty('--dy', -(100 + Math.random() * 200) + 'px');
           d.classList.add('fly');
         });
       }, revealDelay);
+      var lastScatterEnd = revealDelay + (letters.length - 1) * SCATTER_STAGGER + SCATTER_DURATION;
 
-      // Phase 5: YING logo appears after scatter
+      // Phase 5: YING logo appears once all letters have scattered away
+      var revealLogoDelay = lastScatterEnd + 100;
       setTimeout(function() {
         finalLogo.classList.add('reveal');
+        flash.classList.add('pulse');
         // pulse glow contracts
         setTimeout(function() {
           glow.style.opacity = '0.3';
-          document.querySelector('.splash-glow-snd').style.opacity = '0';
+          glowSnd.style.opacity = '0';
         }, 300);
-      }, revealDelay + 420);
+      }, revealLogoDelay);
 
-      // Phase 6: transition to login
+      // Phase 6: transition to login (once the reveal animation has settled)
+      var fadeDelay = revealLogoDelay + REVEAL_DURATION + 100;
       setTimeout(function() {
         finalLogo.classList.add('fade');
+        rays.classList.remove('show');
         setTimeout(function() {
           window.location.href = '/login';
-        }, 800);
-      }, revealDelay + 3200);
+        }, FADE_DURATION);
+      }, fadeDelay);
     })();
   </script>
 </body>

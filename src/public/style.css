@@ -24,6 +24,34 @@ body {
   position: relative;
 }
 
+.splash-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1100px;
+  height: 1100px;
+  transform: translate(-50%, -50%) rotate(0deg);
+  background: conic-gradient(from 0deg,
+    transparent 0deg, rgba(229,9,20,0.06) 8deg, transparent 18deg,
+    transparent 88deg, rgba(229,9,20,0.05) 96deg, transparent 106deg,
+    transparent 178deg, rgba(229,9,20,0.06) 186deg, transparent 196deg,
+    transparent 268deg, rgba(229,9,20,0.05) 276deg, transparent 286deg,
+    transparent 360deg);
+  opacity: 0;
+  pointer-events: none;
+  animation: raysRotate 18s linear infinite;
+  transition: opacity 1.5s ease;
+}
+
+.splash-rays.show {
+  opacity: 1;
+}
+
+@keyframes raysRotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 .splash-glow {
   position: absolute;
   top: 50%;
@@ -50,12 +78,32 @@ body {
   pointer-events: none;
 }
 
+.splash-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.85) 0%, rgba(229,9,20,0.35) 30%, transparent 65%);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.splash-flash.pulse {
+  animation: flashPulse 0.6s ease-out 0.45s forwards;
+}
+
+@keyframes flashPulse {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .splash-dust {
   position: absolute;
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(229,9,20,0.3);
+  background: rgba(229,9,20,0.5);
+  box-shadow: 0 0 6px 1px rgba(229,9,20,0.5);
   opacity: 0;
   pointer-events: none;
 }
@@ -83,26 +131,25 @@ body {
 
 .logo-anim {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
   width: 520px;
   height: 200px;
   margin: 0 auto;
+  perspective: 900px;
 }
 
 .logo-anim .letter {
-  position: absolute;
-  top: 0;
+  position: relative;
   font-size: 150px;
   font-weight: 900;
   color: #e50914;
   opacity: 0;
   text-shadow: 0 0 40px rgba(229,9,20,0.4);
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
 }
-
-.logo-anim .letter.l0 { left: 0; }
-.logo-anim .letter.l1 { left: 130px; }
-.logo-anim .letter.l2 { left: 260px; }
-.logo-anim .letter.l3 { left: 380px; }
 
 /* ── materialize: letter emerges from darkness with impact ── */
 .logo-anim .letter.materialize {
@@ -110,11 +157,11 @@ body {
 }
 
 @keyframes materialize {
-  0% { opacity: 0; transform: scale(0.3) translateY(60px); filter: blur(12px); }
-  40% { opacity: 1; filter: blur(0); }
-  60% { transform: scale(1.15) translateY(-4px); }
-  80% { transform: scale(0.95) translateY(0); }
-  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+  0% { opacity: 0; transform: scale(0.2) translateZ(-260px) rotateX(35deg) translateY(50px); filter: blur(16px); }
+  45% { opacity: 1; filter: blur(0); }
+  65% { transform: scale(1.18) translateZ(0) rotateX(-6deg) translateY(-6px); }
+  82% { transform: scale(0.94) rotateX(2deg) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateZ(0) rotateX(0deg) translateY(0); filter: blur(0); }
 }
 
 /* ── impact burst ── */
@@ -122,18 +169,18 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 100px;
-  height: 100px;
+  width: 140px;
+  height: 140px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(229,9,20,0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0.35) 0%, rgba(229,9,20,0.35) 35%, transparent 70%);
   animation: burstOut 0.6s ease-out forwards;
   pointer-events: none;
 }
 
 @keyframes burstOut {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.2); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.5); }
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.15); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(3); }
 }
 
 /* ── scatter: letters fly away ── */
@@ -142,8 +189,8 @@ body {
 }
 
 @keyframes scatter {
-  0% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); filter: blur(0); }
-  100% { opacity: 0; transform: translateX(var(--dx, 200px)) scale(0.2) rotate(var(--dr, 30deg)); filter: blur(4px); }
+  0% { opacity: 1; transform: translateX(0) translateZ(0) scale(1) rotate(0deg); filter: blur(0); }
+  100% { opacity: 0; transform: translateX(var(--dx, 200px)) translateZ(-220px) scale(0.15) rotate(var(--dr, 30deg)); filter: blur(6px); }
 }
 
 /* ── underline ── */
@@ -158,16 +205,38 @@ body {
   border-radius: 2px;
   opacity: 0;
   box-shadow: 0 0 12px rgba(229,9,20,0.6);
+  overflow: hidden;
+}
+
+.logo-underline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+  opacity: 0;
 }
 
 .logo-underline.draw {
   animation: drawLine 0.5s cubic-bezier(0.2, 0.9, 0.1, 1) forwards;
 }
 
+.logo-underline.draw::after {
+  animation: underlineGlint 0.6s ease-out 0.15s forwards;
+}
+
 @keyframes drawLine {
   0% { width: 0; opacity: 0; }
   30% { opacity: 1; }
   100% { width: 82%; opacity: 1; }
+}
+
+@keyframes underlineGlint {
+  0% { left: -40%; opacity: 0; }
+  20% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
 }
 
 /* ── final YING logo ── */
@@ -178,15 +247,25 @@ body {
   transform: translate(-50%, -50%) scale(0);
   font-size: 110px;
   font-weight: 900;
-  color: #e50914;
   opacity: 0;
   letter-spacing: -3px;
   line-height: 1;
   text-shadow: 0 0 40px rgba(229,9,20,0.4);
+  background: linear-gradient(115deg, #e50914 42%, #ff6a5a 50%, #e50914 58%);
+  background-size: 260% 100%;
+  background-position: 200% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .logo-final.reveal {
-  animation: revealLogo 2s cubic-bezier(0.5, 0, 0.1, 1) forwards;
+  animation: revealLogo 2s cubic-bezier(0.5, 0, 0.1, 1) forwards, shimmerSweep 1.1s ease-out 1.1s forwards;
+}
+
+@keyframes shimmerSweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -60% 0; }
 }
 
 @keyframes revealLogo {
@@ -1052,14 +1131,11 @@ body {
   .logo-anim {
     width: 300px;
     height: 120px;
+    gap: 2px;
   }
   .logo-anim .letter {
     font-size: 80px;
   }
-  .logo-anim .letter.l0 { left: 0; }
-  .logo-anim .letter.l1 { left: 75px; }
-  .logo-anim .letter.l2 { left: 150px; }
-  .logo-anim .letter.l3 { left: 220px; }
   .logo-final {
     font-size: 60px;
   }
@@ -1070,6 +1146,10 @@ body {
   .splash-glow-snd {
     width: 300px;
     height: 300px;
+  }
+  .splash-rays {
+    width: 700px;
+    height: 700px;
   }
 
   .profile-screen {
