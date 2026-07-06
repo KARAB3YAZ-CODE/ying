@@ -176,6 +176,7 @@
 
   <script>
     var notesData = <%- JSON.stringify(notes).replace(/</g, '\\u003c') %>;
+    var currentMember = <%- JSON.stringify(member).replace(/</g, '\\u003c') %>;
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, function(ch) {
@@ -201,7 +202,9 @@
       if (note.content) {
         html += '<div class="note-preview-text">' + escapeHtml(note.content) + '</div>';
       }
-      html += '<form method="POST" action="/notes/delete/' + encodeURIComponent(note.id) + '" class="note-preview-del"><button type="submit">Sil</button></form>';
+      if (note.author === currentMember) {
+        html += '<form method="POST" action="/notes/delete/' + encodeURIComponent(note.id) + '" class="note-preview-del"><button type="submit">Sil</button></form>';
+      }
 
       preview.innerHTML = html;
       overlay.classList.add('active');

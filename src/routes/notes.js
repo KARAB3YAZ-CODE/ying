@@ -8,9 +8,8 @@ export default function notesRoutes(upload) {
 
   router.get('/', asyncHandler(async (req, res) => {
     const [notes, config] = await Promise.all([getNotes(), getConfig()]);
-    const mine = notes.filter(n => n.author === req.session.member);
     const member = config.members.find(m => m.name === req.session.member);
-    res.render('notes', { notes: mine, member: req.session.member, photo: member?.photo || null });
+    res.render('notes', { notes, member: req.session.member, photo: member?.photo || null });
   }));
 
   router.post('/', upload.single('photo'), asyncHandler(async (req, res) => {
@@ -41,6 +40,8 @@ export default function notesRoutes(upload) {
 
   router.post('/delete/:id', asyncHandler(async (req, res) => {
     let notes = await getNotes();
+    const target = notes.find(n => n.id === req.params.id);
+    if (!target || target.author !== req.session.member) return res.redirect('/notes');
     notes = notes.filter(n => n.id !== req.params.id);
     await saveNotes(notes);
     res.redirect('/notes');
