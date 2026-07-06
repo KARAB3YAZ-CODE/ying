@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ying - Günlük</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="browse-page">
+    <%- include('_nav', { member: member, photo: photo, active: 'daily' }) %>
+
+    <div class="browse-content daily-content">
+      <section class="daily-status-card">
+        <% if (pendingCount === 0) { %>
+        <h3>Günlük henüz boş</h3>
+        <p>Aşağıdan bir not veya fotoğraf ekleyerek biriktirmeye başlayın. İstediğiniz an hep birlikte açmaya karar verebilirsiniz.</p>
+        <% } else { %>
+        <h3>🔒 <%= pendingCount %> günlük girişi onay bekliyor</h3>
+        <p>İçerikler gizli — herkes onaylayınca hepsi birden, tarihli şekilde açılacak.</p>
+        <div class="daily-votes">
+          <% config.members.forEach(function(m) { %>
+          <span class="daily-vote-chip <%= votes.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= votes.includes(m.name) ? ' ✓' : '' %></span>
+          <% }) %>
+        </div>
+        <form method="POST" action="/daily/vote">
+          <button type="submit" class="hero-btn hero-btn-primary">
+            <%= votes.includes(member) ? 'Onayımı geri al' : ('Onayla ve aç (' + votes.length + '/' + config.members.length + ')') %>
+          </button>
+        </form>
+        <% } %>
+      </section>
+
+      <div class="compose-bar">
+        <form method="POST" action="/daily" enctype="multipart/form-data" class="compose-form">
+          <input name="content" placeholder="Bugün ne oldu?" class="compose-input">
+          <label class="compose-photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <input type="file" name="photo" accept="image/*" onchange="this.form.submit()">
+          </label>
+          <button type="submit" class="compose-btn">Ekle</button>
+        </form>
+      </div>
+
+      <% if (myPending.length > 0) { %>
+      <section class="row">
+        <div class="row-header"><h3>Benim bekleyen girişlerim</h3></div>
+        <% myPending.forEach(function(p) { %>
+        <div class="daily-pending-item">
+          <span><%= new Date(p.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) %></span>
+          <span><%= p.content ? p.content.slice(0, 40) : (p.photo ? '📷 Fotoğraf' : '') %></span>
+          <form method="POST" action="/daily/delete/<%= encodeURIComponent(p.id) %>"><button type="submit">Sil</button></form>
+        </div>
+        <% }) %>
+      </section>
+      <% } %>
+
+      <% if (revealed.length > 0) { %>
+      <section class="row">
+        <div class="row-header"><h3>Açılan Günlükler</h3></div>
+        <% groupedRevealed.forEach(function(group) { %>
+        <h4 class="daily-date-header"><%= group.label %></h4>
+        <div class="row-scroll">
+          <% group.items.forEach(function(note) { %>
+          <div class="card" onclick="openDaily('<%= note.id %>')">
+            <div class="card-art" style="<%= note.photo ? 'background-image: url(' + note.photo + ')' : 'background: linear-gradient(135deg, #2a2a2a, #1f1f1f)' %>">
+              <% if (!note.photo) { %>
+              <div class="card-noimg"><%= note.content ? note.content[0].toUpperCase() : '📝' %></div>
+              <% } %>
+              <div class="card-bottom">
+                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
+                <span class="card-bottom-author"><%= note.author %></span>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+        <% }) %>
+      </section>
+      <% } else { %>
+      <div class="row-empty">Henüz açılmış bir günlük yok</div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="note-overlay" id="noteOverlay">
+    <div class="note-preview" id="notePreview"></div>
+  </div>
+
+  <script>
+    var revealedData = <%- JSON.stringify(revealed).replace(/</g, '\\u003c') %>;
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function(ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
+
+    function openDaily(id) {
+      var note = revealedData.find(function(n) { return n.id === id; });
+      if (!note) return;
+      var overlay = document.getElementById('noteOverlay');
+      var preview = document.getElementById('notePreview');
+
+      var html = '<div class="note-preview-top">';
+      html += '<button class="note-preview-close" onclick="closeNote()">✕</button>';
+      html += '<span class="note-preview-author">' + escapeHtml(note.author) + '</span>';
+      var d = new Date(note.createdAt);
+      html += '<span class="note-preview-date">' + d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>';
+      html += '</div>';
+      if (note.photo) {
+        html += '<img src="' + escapeHtml(note.photo) + '" class="note-preview-img">';
+      }
+      if (note.content) {
+        html += '<div class="note-preview-text">' + escapeHtml(note.content) + '</div>';
+      }
+
+      preview.innerHTML = html;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeNote() {
+      document.getElementById('noteOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('noteOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeNote();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeNote();
+    });
+
+    (function() {
+      var nav = document.getElementById('topNav');
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

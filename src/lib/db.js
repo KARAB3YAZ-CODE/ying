@@ -56,3 +56,11 @@ export async function getNotes() {
 export async function saveNotes(notes) {
   return writeValue('ying:notes', 'notes.json', notes);
 }
+
+export async function getDaily() {
+  return readValue('ying:daily', 'daily.json');
+}
+
+export async function saveDaily(daily) {
+  return writeValue('ying:daily', 'daily.json', daily);
+}
