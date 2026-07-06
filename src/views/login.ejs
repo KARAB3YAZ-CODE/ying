@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ying - Giriş</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="profile-screen">
+    <div class="brand">Ying</div>
+    <p class="tagline">Kim izliyor?</p>
+
+    <div class="profile-grid">
+      <% members.forEach(function(m) { %>
+        <button class="profile-card" data-name="<%= m.name %>" data-password="<%= m.password %>">
+          <div class="profile-avatar" style="background: linear-gradient(135deg, <%= m.name === 'Yunus' ? '#e50914,#b20710' : m.name === 'İrem' ? '#e87c03,#b85d00' : m.name === 'Nursene' ? '#5fa33e,#3d7a23' : '#0080ff,#0052b3' %>);<%= m.photo ? ' background-image: url(' + m.photo + '); background-size: cover; background-position: center;' : '' %>">
+            <span class="avatar-initial"><%= m.name[0] %></span>
+          </div>
+          <span class="profile-name"><%= m.name %></span>
+        </button>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>Hoş geldin</h2>
+      <span class="modal-name" id="modalName"></span>
+      <form method="POST" action="/login">
+        <input type="hidden" name="name" id="inputName">
+        <input type="password" name="password" id="inputPassword" placeholder="Şifreni gir" required autocomplete="off">
+        <% if (locals.error) { %><div class="error"><%= error %></div><% } %>
+        <div class="error" id="clientError" style="display:none"></div>
+        <button type="submit" class="btn-primary">Giriş Yap</button>
+        <button type="button" class="btn-cancel" id="cancelBtn">İptal</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var overlay = document.getElementById('modalOverlay');
+      var modalName = document.getElementById('modalName');
+      var inputName = document.getElementById('inputName');
+      var inputPassword = document.getElementById('inputPassword');
+      var cancelBtn = document.getElementById('cancelBtn');
+      var clientError = document.getElementById('clientError');
+
+      document.querySelectorAll('.profile-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          modalName.textContent = this.dataset.name;
+          inputName.value = this.dataset.name;
+          inputPassword.value = '';
+          clientError.style.display = 'none';
+          overlay.classList.add('active');
+          setTimeout(function() { inputPassword.focus(); }, 150);
+        });
+      });
+
+      cancelBtn.addEventListener('click', function() {
+        overlay.classList.remove('active');
+      });
+
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') overlay.classList.remove('active');
+      });
+    })();
+  </script>
+</body>
+</html>

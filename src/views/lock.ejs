@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ying</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="splash">
+    <div class="splash-inner">
+      <div class="logo-anim" id="logoAnim">
+        <div class="letter l0">Y</div>
+        <div class="letter l1">İ</div>
+        <div class="letter l2">N</div>
+        <div class="letter l3">G</div>
+        <div class="logo-final" id="logoFinal">Ying</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var letters = document.querySelectorAll('.letter');
+      var finalLogo = document.getElementById('logoFinal');
+
+      var delay = 0;
+      letters.forEach(function(el, i) {
+        setTimeout(function() {
+          el.classList.add('pop');
+          setTimeout(function() {
+            el.style.setProperty('--dx', (i * 25 + 80) * (i % 2 === 0 ? 1 : -1) + 'px');
+            el.classList.add('fly');
+          }, 700);
+        }, delay);
+        delay += 250;
+      });
+
+      setTimeout(function() {
+        finalLogo.classList.add('reveal');
+      }, delay + 900);
+
+      setTimeout(function() {
+        window.location.href = '/login';
+      }, delay + 2500);
+    })();
+  </script>
+</body>
+</html>

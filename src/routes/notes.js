@@ -1,0 +1,48 @@
+import { Router } from 'express';
+import { getNotes, saveNotes, getConfig } from '../lib/db.js';
+
+export default function notesRoutes(upload) {
+  const router = Router();
+
+  router.get('/', async (req, res) => {
+    const [notes, config] = await Promise.all([getNotes(), getConfig()]);
+    const mine = notes.filter(n => n.author === req.session.member);
+    const member = config.members.find(m => m.name === req.session.member);
+    res.render('notes', { notes: mine, member: req.session.member, photo: member?.photo || null });
+  });
+
+  router.post('/', upload.single('photo'), async (req, res) => {
+    const { content } = req.body;
+    const photo = req.file;
+
+    if ((!content || !content.trim()) && !photo) return res.redirect('/notes');
+
+    const notes = await getNotes();
+    const entry = {
+      id: Date.now().toString(36),
+      author: req.session.member,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (content && content.trim()) {
+      entry.content = content.trim();
+    }
+
+    if (photo) {
+      entry.photo = '/uploads/' + photo.filename;
+    }
+
+    notes.push(entry);
+    await saveNotes(notes);
+    res.redirect('/notes');
+  });
+
+  router.post('/delete/:id', async (req, res) => {
+    let notes = await getNotes();
+    notes = notes.filter(n => n.id !== req.params.id);
+    await saveNotes(notes);
+    res.redirect('/notes');
+  });
+
+  return router;
+}
