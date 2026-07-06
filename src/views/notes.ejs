@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ying - Notlar</title>
+  <title>Ying - Anılar</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div class="notes-page">
+  <div class="browse-page">
     <nav class="top-nav" id="topNav">
       <div class="nav-brand">Ying</div>
       <div class="nav-right">
         <div class="nav-user">
           <div class="nav-avatar" style="background: linear-gradient(135deg, <%= member === 'Yunus' ? '#e50914,#b20710' : member === 'İrem' ? '#e87c03,#b85d00' : member === 'Nursene' ? '#5fa33e,#3d7a23' : '#0080ff,#0052b3' %>);<%= photo ? ' background-image: url(' + photo + '); background-size: cover; background-position: center;' : '' %>">
-            <span class="avatar-initial" style="font-size:14px"><%= member[0] %></span>
+            <span class="avatar-initial"><%= member[0] %></span>
           </div>
           <span><%= member %></span>
         </div>
@@ -23,68 +23,170 @@
       </div>
     </nav>
 
-    <div class="content-area">
-      <h2 class="section-title">Notlar</h2>
+    <!-- HERO -->
+    <% if (notes.length > 0) { %>
+    <% var hero = notes[0]; %>
+    <div class="hero-section" style="<%= hero.photo ? 'background-image: url(' + hero.photo + ')' : 'background: linear-gradient(135deg, #1f1f1f, #2a2a2a)' %>">
+      <div class="hero-shadow"></div>
+      <div class="hero-content">
+        <div class="hero-badge">En Son</div>
+        <h2 class="hero-title"><%= hero.content ? hero.content.slice(0, 60) : 'Fotoğraf' %></h2>
+        <div class="hero-meta">
+          <span><%= new Date(hero.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
+          <span class="hero-dot">·</span>
+          <span><%= hero.author %></span>
+        </div>
+      </div>
+    </div>
+    <% } %>
 
-      <div class="compose-card">
-        <form method="POST" action="/notes" enctype="multipart/form-data">
-          <textarea name="content" placeholder="Ne düşünüyorsun?" rows="2"></textarea>
-          <div class="compose-actions">
-            <label class="photo-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              Fotoğraf
-              <input type="file" name="photo" accept="image/*" onchange="this.form.submit()">
-            </label>
-            <button type="submit" class="btn-submit">Paylaş</button>
-          </div>
+    <div class="browse-content">
+      <!-- COMPOSE -->
+      <div class="compose-bar">
+        <form method="POST" action="/notes" enctype="multipart/form-data" class="compose-form">
+          <input name="content" placeholder="Ne düşünüyorsun?" class="compose-input">
+          <label class="compose-photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <input type="file" name="photo" accept="image/*" onchange="this.form.submit()">
+          </label>
+          <button type="submit" class="compose-btn">Gönder</button>
         </form>
       </div>
 
-
-
-      <% if (notes.length === 0) { %>
-        <div class="empty-state">
-          <div class="empty-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-          </div>
-          <p>Henüz notun yok</p>
-          <span>İlk notu yaz veya bir fotoğraf yükle</span>
+      <!-- ROW: Tüm Anılar -->
+      <section class="row">
+        <div class="row-header">
+          <h3>Tüm Anılar</h3>
+          <span class="row-count"><%= notes.length %></span>
         </div>
+        <% if (notes.length === 0) { %>
+        <div class="row-empty">
+          <p>Henüz anın yok — ilk notu yaz veya fotoğraf yükle</p>
+        </div>
+        <% } else { %>
+        <div class="row-scroll">
+          <% notes.forEach(function(note) { %>
+          <a class="card" onclick="openNote('<%= note.id %>')">
+            <div class="card-art" style="<%= note.photo ? 'background-image: url(' + note.photo + ')' : 'background: linear-gradient(135deg, #2a2a2a, #1f1f1f)' %>">
+              <% if (!note.photo) { %>
+              <div class="card-noimg"><%= note.content ? note.content[0].toUpperCase() : '📝' %></div>
+              <% } %>
+              <div class="card-overlay">
+                <div class="card-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></div>
+              </div>
+            </div>
+            <div class="card-title"><%= note.content ? note.content.slice(0, 40) : '📷 Fotoğraf' %></div>
+            <div class="card-author"><%= note.author %></div>
+          </a>
+          <% }) %>
+        </div>
+        <% } %>
+      </section>
+
+      <!-- ROW: Sadece Fotoğraflar -->
+      <% var photos = notes.filter(function(n) { return n.photo; }); %>
+      <% if (photos.length > 0) { %>
+      <section class="row">
+        <div class="row-header">
+          <h3>Fotoğraflar</h3>
+          <span class="row-count"><%= photos.length %></span>
+        </div>
+        <div class="row-scroll">
+          <% photos.forEach(function(note) { %>
+          <a class="card card-photo" onclick="openNote('<%= note.id %>')">
+            <div class="card-art" style="background-image: url(<%= note.photo %>)">
+              <div class="card-overlay">
+                <div class="card-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></div>
+              </div>
+            </div>
+            <div class="card-title"><%= note.content ? note.content.slice(0, 30) : '📷 Fotoğraf' %></div>
+            <div class="card-author"><%= note.author %></div>
+          </a>
+          <% }) %>
+        </div>
+      </section>
       <% } %>
 
-      <% notes.forEach(function(note) { %>
-        <div class="entry">
-          <div class="entry-inner">
-            <div class="entry-meta">
-              <span class="entry-date"><%= new Date(note.createdAt).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></span>
-              <form method="POST" action="/notes/delete/<%= note.id %>" style="display:inline">
-                <button type="submit" class="btn-entry-del">Sil</button>
-              </form>
-            </div>
-            <% if (note.content) { %>
-              <div class="entry-text"><%= note.content %></div>
-            <% } %>
-          </div>
-          <% if (note.photo) { %>
-            <img src="<%= note.photo %>" class="entry-photo" alt="fotoğraf" loading="lazy">
-          <% } %>
+      <!-- ROW: Sadece Notlar -->
+      <% var textNotes = notes.filter(function(n) { return !n.photo; }); %>
+      <% if (textNotes.length > 0) { %>
+      <section class="row">
+        <div class="row-header">
+          <h3>Notlar</h3>
+          <span class="row-count"><%= textNotes.length %></span>
         </div>
-      <% }) %>
+        <div class="row-scroll">
+          <% textNotes.forEach(function(note) { %>
+          <a class="card card-text" onclick="openNote('<%= note.id %>')">
+            <div class="card-art" style="background: linear-gradient(135deg, <%= note.author === 'Yunus' ? '#e50914' : note.author === 'İrem' ? '#e87c03' : note.author === 'Nursene' ? '#5fa33e' : '#0080ff' %>22, #1a1a1a)">
+              <div class="card-noimg" style="font-size:1.4rem"><%= note.content ? note.content.slice(0, 1).toUpperCase() : '📝' %></div>
+              <div class="card-overlay">
+                <div class="card-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></div>
+              </div>
+            </div>
+            <div class="card-title"><%= note.content ? note.content.slice(0, 40) : 'Not' %></div>
+            <div class="card-author"><%= note.author %></div>
+          </a>
+          <% }) %>
+        </div>
+      </section>
+      <% } %>
     </div>
   </div>
 
+  <!-- NOTE MODAL -->
+  <div class="note-overlay" id="noteOverlay">
+    <div class="note-preview" id="notePreview"></div>
+  </div>
+
   <script>
+    var notesData = <%- JSON.stringify(notes) %>;
+
+    function openNote(id) {
+      var note = notesData.find(function(n) { return n.id === id; });
+      if (!note) return;
+      var overlay = document.getElementById('noteOverlay');
+      var preview = document.getElementById('notePreview');
+
+      var html = '<div class="note-preview-top">';
+      html += '<button class="note-preview-close" onclick="closeNote()">✕</button>';
+      html += '<span class="note-preview-author">' + note.author + '</span>';
+      var d = new Date(note.createdAt);
+      html += '<span class="note-preview-date">' + d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>';
+      html += '</div>';
+      if (note.photo) {
+        html += '<img src="' + note.photo + '" class="note-preview-img">';
+      }
+      if (note.content) {
+        html += '<div class="note-preview-text">' + note.content + '</div>';
+      }
+      html += '<form method="POST" action="/notes/delete/' + note.id + '" class="note-preview-del"><button type="submit">Sil</button></form>';
+
+      preview.innerHTML = html;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeNote() {
+      document.getElementById('noteOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('noteOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeNote();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeNote();
+    });
+
     (function() {
       var nav = document.getElementById('topNav');
       var ticking = false;
       window.addEventListener('scroll', function() {
         if (!ticking) {
           requestAnimationFrame(function() {
-            if (window.scrollY > 10) {
-              nav.classList.add('scrolled');
-            } else {
-              nav.classList.remove('scrolled');
-            }
+            nav.classList.toggle('scrolled', window.scrollY > 10);
             ticking = false;
           });
           ticking = true;
