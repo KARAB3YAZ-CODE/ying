@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getConfig, saveConfig } from '../lib/db.js';
+import { savePhoto } from '../lib/storage.js';
 
 export default function profileRoutes(upload) {
   const router = Router();
@@ -11,7 +12,7 @@ export default function profileRoutes(upload) {
     const config = await getConfig();
     const member = config.members.find(m => m.name === req.session.member);
     if (member) {
-      member.photo = '/uploads/' + file.filename;
+      member.photo = await savePhoto(file);
       await saveConfig(config);
     }
     res.redirect('/notes');

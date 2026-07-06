@@ -175,7 +175,13 @@
   </div>
 
   <script>
-    var notesData = <%- JSON.stringify(notes) %>;
+    var notesData = <%- JSON.stringify(notes).replace(/</g, '\\u003c') %>;
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function(ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
 
     function openNote(id) {
       var note = notesData.find(function(n) { return n.id === id; });
@@ -185,17 +191,17 @@
 
       var html = '<div class="note-preview-top">';
       html += '<button class="note-preview-close" onclick="closeNote()">✕</button>';
-      html += '<span class="note-preview-author">' + note.author + '</span>';
+      html += '<span class="note-preview-author">' + escapeHtml(note.author) + '</span>';
       var d = new Date(note.createdAt);
       html += '<span class="note-preview-date">' + d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>';
       html += '</div>';
       if (note.photo) {
-        html += '<img src="' + note.photo + '" class="note-preview-img">';
+        html += '<img src="' + escapeHtml(note.photo) + '" class="note-preview-img">';
       }
       if (note.content) {
-        html += '<div class="note-preview-text">' + note.content + '</div>';
+        html += '<div class="note-preview-text">' + escapeHtml(note.content) + '</div>';
       }
-      html += '<form method="POST" action="/notes/delete/' + note.id + '" class="note-preview-del"><button type="submit">Sil</button></form>';
+      html += '<form method="POST" action="/notes/delete/' + encodeURIComponent(note.id) + '" class="note-preview-del"><button type="submit">Sil</button></form>';
 
       preview.innerHTML = html;
       overlay.classList.add('active');

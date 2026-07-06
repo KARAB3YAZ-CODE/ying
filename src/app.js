@@ -11,13 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export function createApp() {
   const upload = multer({
-    storage: multer.diskStorage({
-      destination: join(__dirname, 'public', 'uploads'),
-      filename: (req, file, cb) => {
-        const ext = file.originalname.split('.').pop();
-        cb(null, Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext);
-      },
-    }),
+    storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 },
   });
 

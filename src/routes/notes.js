@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getNotes, saveNotes, getConfig } from '../lib/db.js';
+import { savePhoto } from '../lib/storage.js';
 
 export default function notesRoutes(upload) {
   const router = Router();
@@ -13,9 +14,9 @@ export default function notesRoutes(upload) {
 
   router.post('/', upload.single('photo'), async (req, res) => {
     const { content } = req.body;
-    const photo = req.file;
+    const file = req.file;
 
-    if ((!content || !content.trim()) && !photo) return res.redirect('/notes');
+    if ((!content || !content.trim()) && !file) return res.redirect('/notes');
 
     const notes = await getNotes();
     const entry = {
@@ -28,8 +29,8 @@ export default function notesRoutes(upload) {
       entry.content = content.trim();
     }
 
-    if (photo) {
-      entry.photo = '/uploads/' + photo.filename;
+    if (file) {
+      entry.photo = await savePhoto(file);
     }
 
     notes.push(entry);

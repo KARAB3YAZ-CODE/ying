@@ -13,7 +13,7 @@
 
     <div class="profile-grid">
       <% members.forEach(function(m) { %>
-        <button class="profile-card" data-name="<%= m.name %>" data-password="<%= m.password %>">
+        <button class="profile-card" data-name="<%= m.name %>">
           <div class="profile-avatar" style="background: linear-gradient(135deg, <%= m.name === 'Yunus' ? '#e50914,#b20710' : m.name === 'İrem' ? '#e87c03,#b85d00' : m.name === 'Nursene' ? '#5fa33e,#3d7a23' : '#0080ff,#0052b3' %>);<%= m.photo ? ' background-image: url(' + m.photo + '); background-size: cover; background-position: center;' : '' %>">
             <span class="avatar-initial"><%= m.name[0] %></span>
           </div>

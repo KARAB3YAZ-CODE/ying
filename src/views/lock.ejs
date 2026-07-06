@@ -49,16 +49,29 @@
       var REVEAL_DURATION = 2000; // .reveal
       var FADE_DURATION = 800; // .fade
 
-      // Phase 1: glow build-up
+      // all phase timestamps computed up front so the audio cues can be scheduled alongside them
+      var lettersMaterializedAt = LETTER_START + (letters.length - 1) * LETTER_STAGGER + MATERIALIZE_DURATION;
+      var underlineDelay = lettersMaterializedAt + 150;
+      var underlineDrawnAt = underlineDelay + UNDERLINE_DRAW_DURATION;
+      var revealDelay = underlineDrawnAt + 200;
+      var lastScatterEnd = revealDelay + (letters.length - 1) * SCATTER_STAGGER + SCATTER_DURATION;
+      var revealLogoDelay = lastScatterEnd + 100;
+      var fadeDelay = revealLogoDelay + REVEAL_DURATION + 100;
+
+      var audioCtx = createAudioContext();
+
+      // Phase 1: glow build-up + rising swell
       setTimeout(function() {
         glow.style.opacity = '1';
         rays.classList.add('show');
+        playSwell(audioCtx, revealLogoDelay - 200);
       }, 200);
 
       // Phase 2: letters materialize one by one
       letters.forEach(function(el, i) {
         setTimeout(function() {
           el.classList.add('materialize');
+          playLetterTick(audioCtx, i);
           // impact glow
           var burst = document.createElement('div');
           burst.className = 'letter-burst';
@@ -66,20 +79,16 @@
           setTimeout(function() { burst.remove(); }, 600);
         }, LETTER_START + i * LETTER_STAGGER);
       });
-      var lettersMaterializedAt = LETTER_START + (letters.length - 1) * LETTER_STAGGER + MATERIALIZE_DURATION;
 
       // Phase 3: underline with dramatic sweep (starts once the last letter has landed)
-      var underlineDelay = lettersMaterializedAt + 150;
       setTimeout(function() {
         underline.classList.add('draw');
         // glow flash on underline
         glow.style.opacity = '0.6';
         setTimeout(function() { glow.style.opacity = '0.15'; }, 400);
       }, underlineDelay);
-      var underlineDrawnAt = underlineDelay + UNDERLINE_DRAW_DURATION;
 
       // Phase 4: letters scatter, YING reveals with shockwave (starts once the underline has finished drawing)
-      var revealDelay = underlineDrawnAt + 200;
       setTimeout(function() {
         letters.forEach(function(el, i) {
           setTimeout(function() {
@@ -101,13 +110,12 @@
           d.classList.add('fly');
         });
       }, revealDelay);
-      var lastScatterEnd = revealDelay + (letters.length - 1) * SCATTER_STAGGER + SCATTER_DURATION;
 
       // Phase 5: YING logo appears once all letters have scattered away
-      var revealLogoDelay = lastScatterEnd + 100;
       setTimeout(function() {
         finalLogo.classList.add('reveal');
         flash.classList.add('pulse');
+        playImpactHit(audioCtx);
         // pulse glow contracts
         setTimeout(function() {
           glow.style.opacity = '0.3';
@@ -116,7 +124,6 @@
       }, revealLogoDelay);
 
       // Phase 6: transition to login (once the reveal animation has settled)
-      var fadeDelay = revealLogoDelay + REVEAL_DURATION + 100;
       setTimeout(function() {
         finalLogo.classList.add('fade');
         rays.classList.remove('show');
@@ -124,6 +131,89 @@
           window.location.href = '/login';
         }, FADE_DURATION);
       }, fadeDelay);
+
+      // ── synthesized "ta-dum" style audio cues (no audio file needed) ──
+      function createAudioContext() {
+        try {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return null;
+          var ctx = new Ctx();
+          if (ctx.state === 'suspended') ctx.resume().catch(function() {});
+          return ctx;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function playSwell(ctx, durationMs) {
+        if (!ctx) return;
+        try {
+          var now = ctx.currentTime;
+          var dur = Math.max(durationMs, 200) / 1000;
+          var osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(80, now);
+          osc.frequency.linearRampToValueAtTime(220, now + dur);
+          var gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(0.16, now + dur * 0.85);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur + 0.15);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + dur + 0.2);
+        } catch (e) {}
+      }
+
+      function playLetterTick(ctx, index) {
+        if (!ctx) return;
+        try {
+          var now = ctx.currentTime;
+          var osc = ctx.createOscillator();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320 + index * 45, now);
+          var gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } catch (e) {}
+      }
+
+      function playImpactHit(ctx) {
+        if (!ctx) return;
+        try {
+          var now = ctx.currentTime;
+
+          var thump = ctx.createOscillator();
+          thump.type = 'sine';
+          thump.frequency.setValueAtTime(150, now);
+          thump.frequency.exponentialRampToValueAtTime(40, now + 0.35);
+          var thumpGain = ctx.createGain();
+          thumpGain.gain.setValueAtTime(0.5, now);
+          thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          thump.connect(thumpGain).connect(ctx.destination);
+          thump.start(now);
+          thump.stop(now + 0.6);
+
+          var bufferSize = Math.floor(ctx.sampleRate * 0.4);
+          var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          var data = buffer.getChannelData(0);
+          for (var i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+          }
+          var noise = ctx.createBufferSource();
+          noise.buffer = buffer;
+          var noiseFilter = ctx.createBiquadFilter();
+          noiseFilter.type = 'bandpass';
+          noiseFilter.frequency.value = 1200;
+          var noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.2, now);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          noise.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+          noise.start(now);
+        } catch (e) {}
+      }
     })();
   </script>
 </body>
