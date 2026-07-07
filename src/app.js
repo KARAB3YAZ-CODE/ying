@@ -21,6 +21,12 @@ export function createApp() {
   app.set('view engine', 'ejs');
   app.set('views', join(__dirname, 'views'));
 
+  // private family archive: keep it out of search engines entirely
+  app.use((req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+    next();
+  });
+
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(join(__dirname, 'public')));
   app.use(session({
