@@ -19,6 +19,30 @@
     </form>
   </div>
 </nav>
+
+<nav class="bottom-nav" id="bottomNav">
+  <a href="/notes" class="bottom-tab <%= active === 'notes' ? 'active' : '' %>">
+    <span class="bottom-tab-icon">📸</span>
+    <span class="bottom-tab-label">Anılar</span>
+  </a>
+  <a href="/daily" class="bottom-tab <%= active === 'daily' ? 'active' : '' %>">
+    <span class="bottom-tab-icon">📔</span>
+    <span class="bottom-tab-label">Günlük</span>
+  </a>
+  <a href="/goals" class="bottom-tab <%= active === 'goals' ? 'active' : '' %>">
+    <span class="bottom-tab-icon">🎯</span>
+    <span class="bottom-tab-label">Hedefler</span>
+  </a>
+  <a href="/personal" class="bottom-tab <%= active === 'personal' ? 'active' : '' %>">
+    <span class="bottom-tab-icon">💌</span>
+    <span class="bottom-tab-label">Not</span>
+  </a>
+  <a href="/love" class="bottom-tab <%= active === 'love' ? 'active' : '' %>">
+    <span class="bottom-tab-icon">💛</span>
+    <span class="bottom-tab-label">Aşkımız</span>
+  </a>
+</nav>
+
 <script>
   (function() {
     var activeTab = document.querySelector('.nav-tab.active');
