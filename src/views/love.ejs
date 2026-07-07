@@ -58,19 +58,19 @@
           <% } %>
         <% } else { %>
           <div class="daily-votes">
-            <% config.members.forEach(function(m) { %>
-            <span class="daily-vote-chip <%= cat.writtenBy.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= cat.writtenBy.includes(m.name) ? ' ✓' : '' %></span>
+            <% cat.writers.forEach(function(w) { %>
+            <span class="daily-vote-chip <%= cat.writtenBy.includes(w) ? 'voted' : '' %>"><%= w %><%= cat.writtenBy.includes(w) ? ' ✓' : '' %></span>
             <% }) %>
           </div>
 
-          <% if (cat.alreadyWrote) { %>
-          <p class="goal-locked-msg">✓ Bu başlığa yazdın, kilitlendi.</p>
-          <% } else { %>
+          <% if (cat.canWrite) { %>
           <form method="POST" action="/love" class="goal-form" onsubmit="return confirm('Bu notu kaydettikten sonra değiştiremez ya da silemezsin. Eklemek istediğin başka bir şey var mı? Emin misin?');">
             <textarea name="content" placeholder="<%= cat.label %>" class="goal-textarea" required></textarea>
             <input type="hidden" name="category" value="<%= cat.key %>">
             <button type="submit" class="hero-btn hero-btn-primary">Yaz ve kilitle</button>
           </form>
+          <% } else if (cat.writtenBy.includes(member)) { %>
+          <p class="goal-locked-msg">✓ Bu başlığa yazdın, kilitlendi.</p>
           <% } %>
         <% } %>
       </section>
@@ -93,7 +93,6 @@
       });
     })();
 
-    // live sync: reload when someone else writes or approval status changes
     (function() {
       var lastStatus = null;
       setInterval(function() {

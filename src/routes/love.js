@@ -5,10 +5,10 @@ import { asyncHandler } from '../lib/asyncHandler.js';
 const APPROVERS = ['Yunus', 'Gizem'];
 
 const CATEGORIES = [
-  { key: 'gender', label: 'Kız mı Erkek mi?' },
-  { key: 'teyze', label: 'Teyze Olmak Nasıl Bir His?' },
-  { key: 'anne', label: 'Anne Olmak Nasıl Bir His?' },
-  { key: 'baba', label: 'Baba Olmak Nasıl Bir His?' },
+  { key: 'gender', label: 'Kız mı Erkek mi?', writers: ['Yunus', 'İrem', 'Nursene', 'Gizem'] },
+  { key: 'teyze', label: 'Teyze Olmak Nasıl Bir His?', writers: ['İrem', 'Nursene'] },
+  { key: 'anne', label: 'Anne Olmak Nasıl Bir His?', writers: ['Gizem'] },
+  { key: 'baba', label: 'Baba Olmak Nasıl Bir His?', writers: ['Yunus'] },
 ];
 
 export default function loveRoutes() {
@@ -24,8 +24,9 @@ export default function loveRoutes() {
       return {
         key: cat.key,
         label: cat.label,
+        writers: cat.writers,
         writtenBy,
-        alreadyWrote: writtenBy.includes(member),
+        canWrite: cat.writers.includes(member) && !writtenBy.includes(member) && !love.revealed,
         entries: love.revealed ? catEntries : [],
       };
     });
@@ -49,6 +50,7 @@ export default function loveRoutes() {
       votes: love.votes,
       writtenBy: CATEGORIES.map(cat => ({
         key: cat.key,
+        writers: cat.writers,
         writtenBy: love.entries.filter(e => e.category === cat.key).map(e => e.author),
       })),
     });
@@ -57,7 +59,9 @@ export default function loveRoutes() {
   router.post('/', asyncHandler(async (req, res) => {
     const { category, content } = req.body;
     const cat = CATEGORIES.find(c => c.key === category);
-    if (!cat || !content || !content.trim()) return res.redirect('/love');
+    if (!cat || !content || !content.trim() || !cat.writers.includes(req.session.member)) {
+      return res.redirect('/love');
+    }
 
     const love = await getLove();
     if (love.revealed) return res.redirect('/love');
