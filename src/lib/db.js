@@ -64,3 +64,11 @@ export async function getDaily() {
 export async function saveDaily(daily) {
   return writeValue('ying:daily', 'daily.json', daily);
 }
+
+export async function getGoals() {
+  return readValue('ying:goals', 'goals.json');
+}
+
+export async function saveGoals(goals) {
+  return writeValue('ying:goals', 'goals.json', goals);
+}

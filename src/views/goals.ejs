@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>Ying - Hedefler</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="browse-page">
+    <%- include('_nav', { member: member, photo: photo, active: 'goals' }) %>
+
+    <div class="browse-content daily-content">
+      <% categories.forEach(function(cat) { %>
+      <section class="goal-category">
+        <div class="goal-category-header">
+          <h3><%= cat.label %></h3>
+          <% if (cat.unlocked) { %>
+          <span class="goal-status goal-status-open">🔓 Açıldı</span>
+          <% } else { %>
+          <span class="goal-status">🔒 <%= cat.daysLeft %> gün sonra açılacak · <%= cat.unlockDateLabel %></span>
+          <% } %>
+        </div>
+
+        <% if (cat.unlocked) { %>
+          <% if (cat.entries.length === 0) { %>
+          <p class="goal-empty">Bu kategoride kimse hedef yazmadı.</p>
+          <% } else { %>
+          <div class="goal-entries">
+            <% cat.entries.forEach(function(e) { %>
+            <div class="goal-entry">
+              <span class="goal-entry-author"><%= e.author %></span>
+              <p class="goal-entry-text"><%= e.content %></p>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+        <% } else { %>
+          <div class="daily-votes">
+            <% config.members.forEach(function(m) { %>
+            <span class="daily-vote-chip <%= cat.writtenBy.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= cat.writtenBy.includes(m.name) ? ' ✓' : '' %></span>
+            <% }) %>
+          </div>
+
+          <% if (cat.alreadyWrote) { %>
+          <p class="goal-locked-msg">✓ Bu hedefi yazdın, kilitlendi. Açılana kadar kimse (sen dahil) tekrar göremeyecek.</p>
+          <% } else { %>
+          <form method="POST" action="/goals" class="goal-form">
+            <input type="hidden" name="category" value="<%= cat.key %>">
+            <textarea name="content" placeholder="<%= cat.label %> için hedefin ne?" class="goal-textarea" required></textarea>
+            <button type="submit" class="hero-btn hero-btn-primary">Yaz ve kilitle</button>
+          </form>
+          <% } %>
+        <% } %>
+      </section>
+      <% }) %>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var nav = document.getElementById('topNav');
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+    })();
+
+    // live sync: reload when someone else writes or a category unlocks
+    (function() {
+      var lastStatus = null;
+      setInterval(function() {
+        if (document.hidden) return;
+        fetch('/goals/status').then(function(r) { return r.json(); }).then(function(data) {
+          var s = JSON.stringify(data);
+          if (lastStatus === null) { lastStatus = s; return; }
+          if (s !== lastStatus) location.reload();
+        }).catch(function() {});
+      }, 5000);
+    })();
+  </script>
+</body>
+</html>
