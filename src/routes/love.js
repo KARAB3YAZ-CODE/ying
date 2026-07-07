@@ -4,13 +4,31 @@ import { asyncHandler } from '../lib/asyncHandler.js';
 
 const APPROVERS = ['Yunus', 'Gizem'];
 
+const CATEGORIES = [
+  { key: 'gender', label: 'Kız mı Erkek mi?' },
+  { key: 'teyze', label: 'Teyze Olmak Nasıl Bir His?' },
+  { key: 'anne', label: 'Anne Olmak Nasıl Bir His?' },
+  { key: 'baba', label: 'Baba Olmak Nasıl Bir His?' },
+];
+
 export default function loveRoutes() {
   const router = Router();
 
   router.get('/', asyncHandler(async (req, res) => {
     const [love, config] = await Promise.all([getLove(), getConfig()]);
     const member = req.session.member;
-    const writtenBy = love.entries.map(e => e.author);
+
+    const categories = CATEGORIES.map((cat) => {
+      const catEntries = love.entries.filter(e => e.category === cat.key);
+      const writtenBy = catEntries.map(e => e.author);
+      return {
+        key: cat.key,
+        label: cat.label,
+        writtenBy,
+        alreadyWrote: writtenBy.includes(member),
+        entries: love.revealed ? catEntries : [],
+      };
+    });
 
     res.render('love', {
       member,
@@ -20,9 +38,7 @@ export default function loveRoutes() {
       votes: love.votes,
       canVote: APPROVERS.includes(member),
       revealed: love.revealed,
-      writtenBy,
-      alreadyWrote: writtenBy.includes(member),
-      entries: love.revealed ? love.entries : [],
+      categories,
     });
   }));
 
@@ -31,21 +47,28 @@ export default function loveRoutes() {
     res.json({
       revealed: love.revealed,
       votes: love.votes,
-      writtenBy: love.entries.map(e => e.author),
+      writtenBy: CATEGORIES.map(cat => ({
+        key: cat.key,
+        writtenBy: love.entries.filter(e => e.category === cat.key).map(e => e.author),
+      })),
     });
   }));
 
   router.post('/', asyncHandler(async (req, res) => {
-    const { content } = req.body;
-    if (!content || !content.trim()) return res.redirect('/love');
+    const { category, content } = req.body;
+    const cat = CATEGORIES.find(c => c.key === category);
+    if (!cat || !content || !content.trim()) return res.redirect('/love');
 
     const love = await getLove();
     if (love.revealed) return res.redirect('/love');
-    if (love.entries.some(e => e.author === req.session.member)) return res.redirect('/love');
+    if (love.entries.some(e => e.category === category && e.author === req.session.member)) {
+      return res.redirect('/love');
+    }
 
     love.entries.push({
       id: Date.now().toString(36),
       author: req.session.member,
+      category,
       content: content.trim(),
       createdAt: new Date().toISOString(),
     });

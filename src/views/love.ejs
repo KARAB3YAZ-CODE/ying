@@ -17,16 +17,7 @@
         <% if (revealed) { %>
         <p class="goal-status-open">🔓 Açıldı — herkesin mesajı aşağıda.</p>
         <% } else { %>
-        <p>Kız mı erkek mi tahminin ne? Teyze/anne/baba olmak nasıl bir his? Yunus ve Gizem'e söylemek istediğin bir şey — hepsi burada birikiyor. Sadece Yunus ve Gizem onaylayınca hepsi birden herkese açılacak.</p>
-
-        <div class="daily-today">
-          <span class="daily-today-label">Kim yazdı</span>
-          <div class="daily-votes">
-            <% config.members.forEach(function(m) { %>
-            <span class="daily-vote-chip <%= writtenBy.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= writtenBy.includes(m.name) ? ' ✓' : '' %></span>
-            <% }) %>
-          </div>
-        </div>
+        <p>Aşağıdaki başlıklara sırayla birer mesaj yaz. Sadece Yunus ve Gizem onaylayınca hepsi birden herkese açılacak.</p>
 
         <div class="daily-today">
           <span class="daily-today-label">Onay (Yunus &amp; Gizem)</span>
@@ -46,34 +37,44 @@
         <% } %>
       </section>
 
-      <% if (!revealed) { %>
-        <% if (alreadyWrote) { %>
-        <div class="daily-status-card daily-already-wrote">
-          <p>✓ Notunu yazdın, kilitlendi. Açılana kadar kimse (sen dahil) tekrar göremeyecek.</p>
+      <% categories.forEach(function(cat) { %>
+      <section class="goal-category">
+        <div class="goal-category-header">
+          <h3><%= cat.label %></h3>
         </div>
-        <% } else { %>
-        <div class="compose-bar">
-          <form method="POST" action="/love" class="goal-form" onsubmit="return confirm('Bu notu kaydettikten sonra degistiremez ya da silemezsin. Eklemek istedigin baska bir sey var mi? Emin misin?');">
-            <textarea name="content" placeholder="Kız mı erkek mi? Teyze/anne/baba olmak nasıl bir his? Yunus ve Gizem'e mesajın ne?" class="goal-textarea" required></textarea>
-            <button type="submit" class="compose-btn">Yaz ve kilitle</button>
-          </form>
-        </div>
-        <% } %>
-      <% } else { %>
-        <% if (entries.length > 0) { %>
-        <section class="row">
-          <div class="row-header"><h3>Herkesin mesajı</h3></div>
-          <div class="goal-entries" style="margin: 0 5%;">
-            <% entries.forEach(function(e) { %>
+
+        <% if (revealed) { %>
+          <% if (cat.entries.length === 0) { %>
+          <p class="goal-empty">Bu başlığa kimse yazmadı.</p>
+          <% } else { %>
+          <div class="goal-entries">
+            <% cat.entries.forEach(function(e) { %>
             <div class="goal-entry">
               <span class="goal-entry-author"><%= e.author %></span>
               <p class="goal-entry-text"><%= e.content %></p>
             </div>
             <% }) %>
           </div>
-        </section>
+          <% } %>
+        <% } else { %>
+          <div class="daily-votes">
+            <% config.members.forEach(function(m) { %>
+            <span class="daily-vote-chip <%= cat.writtenBy.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= cat.writtenBy.includes(m.name) ? ' ✓' : '' %></span>
+            <% }) %>
+          </div>
+
+          <% if (cat.alreadyWrote) { %>
+          <p class="goal-locked-msg">✓ Bu başlığa yazdın, kilitlendi.</p>
+          <% } else { %>
+          <form method="POST" action="/love" class="goal-form" onsubmit="return confirm('Bu notu kaydettikten sonra değiştiremez ya da silemezsin. Eklemek istediğin başka bir şey var mı? Emin misin?');">
+            <textarea name="content" placeholder="<%= cat.label %>" class="goal-textarea" required></textarea>
+            <input type="hidden" name="category" value="<%= cat.key %>">
+            <button type="submit" class="hero-btn hero-btn-primary">Yaz ve kilitle</button>
+          </form>
+          <% } %>
         <% } %>
-      <% } %>
+      </section>
+      <% }) %>
     </div>
   </div>
 
