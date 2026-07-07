@@ -29,8 +29,22 @@
           </button>
         </form>
         <% } %>
+
+        <div class="daily-today">
+          <span class="daily-today-label">Bugün kim yazdı</span>
+          <div class="daily-votes">
+            <% config.members.forEach(function(m) { %>
+            <span class="daily-vote-chip <%= writtenToday.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= writtenToday.includes(m.name) ? ' ✓' : '' %></span>
+            <% }) %>
+          </div>
+        </div>
       </section>
 
+      <% if (alreadyWroteToday) { %>
+      <div class="daily-status-card daily-already-wrote">
+        <p>✓ Bugünkü günlüğünü zaten yazdın — yarın tekrar yazabilirsin.</p>
+      </div>
+      <% } else { %>
       <div class="compose-bar">
         <form method="POST" action="/daily" enctype="multipart/form-data" class="compose-form">
           <input name="content" placeholder="Bugün ne oldu?" class="compose-input">
@@ -41,6 +55,7 @@
           <button type="submit" class="compose-btn">Ekle</button>
         </form>
       </div>
+      <% } %>
 
       <% if (myPending.length > 0) { %>
       <section class="row">
@@ -89,6 +104,20 @@
 
   <script>
     var revealedData = <%- JSON.stringify(revealed).replace(/</g, '\\u003c') %>;
+    var initialStatus = <%- JSON.stringify({ pendingCount: pendingCount, votes: votes, writtenToday: writtenToday, revealedCount: revealed.length }) %>;
+
+    // live sync: poll for changes made from other devices and reload when something moves
+    (function() {
+      var lastStatus = JSON.stringify(initialStatus);
+      setInterval(function() {
+        if (document.hidden) return;
+        fetch('/daily/status').then(function(r) { return r.json(); }).then(function(data) {
+          if (JSON.stringify(data) !== lastStatus) {
+            location.reload();
+          }
+        }).catch(function() {});
+      }, 5000);
+    })();
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, function(ch) {

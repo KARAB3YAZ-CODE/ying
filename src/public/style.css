@@ -683,6 +683,31 @@ body {
   color: #8fd66a;
 }
 
+.daily-today {
+  border-top: 1px solid #2a2a2a;
+  padding-top: 1rem;
+  margin-top: 0.2rem;
+}
+
+.daily-today-label {
+  display: block;
+  color: #777;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.6rem;
+}
+
+.daily-today .daily-votes {
+  margin-bottom: 0;
+}
+
+.daily-already-wrote p {
+  color: #8fd66a;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .daily-pending-item {
   display: flex;
   align-items: center;

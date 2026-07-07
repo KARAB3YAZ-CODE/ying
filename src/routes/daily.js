@@ -17,6 +17,15 @@ function groupByDate(items) {
   return groups;
 }
 
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function whoWroteToday(pending) {
+  const today = todayStr();
+  return pending.filter(p => p.createdAt.slice(0, 10) === today).map(p => p.author);
+}
+
 export default function dailyRoutes(upload) {
   const router = Router();
 
@@ -24,6 +33,7 @@ export default function dailyRoutes(upload) {
     const [daily, config] = await Promise.all([getDaily(), getConfig()]);
     const member = config.members.find(m => m.name === req.session.member);
     const myPending = daily.pending.filter(p => p.author === req.session.member);
+    const writtenToday = whoWroteToday(daily.pending);
 
     res.render('daily', {
       member: req.session.member,
@@ -31,9 +41,21 @@ export default function dailyRoutes(upload) {
       config,
       pendingCount: daily.pending.length,
       votes: daily.votes,
+      writtenToday,
+      alreadyWroteToday: writtenToday.includes(req.session.member),
       myPending,
       revealed: daily.revealed,
       groupedRevealed: groupByDate(daily.revealed),
+    });
+  }));
+
+  router.get('/status', asyncHandler(async (req, res) => {
+    const daily = await getDaily();
+    res.json({
+      pendingCount: daily.pending.length,
+      votes: daily.votes,
+      writtenToday: whoWroteToday(daily.pending),
+      revealedCount: daily.revealed.length,
     });
   }));
 
@@ -44,6 +66,10 @@ export default function dailyRoutes(upload) {
     if ((!content || !content.trim()) && !file) return res.redirect('/daily');
 
     const daily = await getDaily();
+    if (whoWroteToday(daily.pending).includes(req.session.member)) {
+      return res.redirect('/daily');
+    }
+
     const entry = {
       id: Date.now().toString(36),
       author: req.session.member,
