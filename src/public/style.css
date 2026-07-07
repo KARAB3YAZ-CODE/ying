@@ -1065,6 +1065,36 @@ body {
   color: #555;
 }
 
+.compose-cats {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.compose-cat {
+  cursor: pointer;
+}
+
+.compose-cat input {
+  display: none;
+}
+
+.compose-cat span {
+  display: block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: #666;
+  background: #2a2a2a;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+
+.compose-cat input:checked + span {
+  color: #fff;
+  background: #e50914;
+}
+
 .compose-photo {
   display: flex;
   align-items: center;
@@ -1126,6 +1156,15 @@ body {
 .row-header h3 {
   font-size: 1.2rem;
   font-weight: 600;
+}
+
+.row-count {
+  background: #2a2a2a;
+  color: #808080;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 20px;
 }
 
 .row-seeall {
@@ -1341,6 +1380,14 @@ body {
   font-size: 0.95rem;
 }
 
+.note-preview-cat {
+  font-size: 0.78rem;
+  color: #aaa;
+  background: #2a2a2a;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+}
+
 .note-preview-date {
   color: #666;
   font-size: 0.8rem;
@@ -1491,11 +1538,22 @@ body {
   }
 
   .compose-form {
-    padding: 0.2rem 0.2rem 0.2rem 1rem;
-    border-radius: 24px;
+    flex-wrap: wrap;
+    padding: 0.3rem 0.3rem 0.3rem 1rem;
+    border-radius: 16px;
+    gap: 0.3rem;
   }
   .compose-input {
     font-size: 0.85rem;
+    min-width: 120px;
+  }
+  .compose-cats {
+    order: 1;
+    width: 100%;
+  }
+  .compose-cat span {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
   }
   .compose-btn {
     font-size: 0.75rem;
