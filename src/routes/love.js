@@ -9,6 +9,7 @@ const CATEGORIES = [
   { key: 'teyze', label: 'Teyze Olmak Nasıl Bir His?', writers: ['İrem', 'Nursene'] },
   { key: 'anne', label: 'Anne Olmak Nasıl Bir His?', writers: ['Gizem'] },
   { key: 'baba', label: 'Baba Olmak Nasıl Bir His?', writers: ['Yunus'] },
+  { key: 'dusunce', label: 'Ne Düşünüyorsunuz?', writers: ['Yunus', 'İrem', 'Nursene', 'Gizem'] },
 ];
 
 export default function loveRoutes() {
