@@ -855,6 +855,13 @@ body {
   align-self: flex-start;
 }
 
+.goal-mystery {
+  color: #999;
+  font-size: 0.9rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+
 /* ── HERO (Netflix featured style) ── */
 .hero-section {
   position: relative;

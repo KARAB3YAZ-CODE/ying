@@ -50,12 +50,7 @@
         <% if (locked.length === 0 && unlocked.length === 0) { %>
         <p>Henüz sana yazılmış bir not yok.</p>
         <% } else if (locked.length > 0) { %>
-        <p>Aşağıdaki notlar belirtilen tarihte sana açılacak:</p>
-        <div class="daily-votes">
-          <% locked.forEach(function(e) { %>
-          <span class="daily-vote-chip">🔒 <%= new Date(e.unlockDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
-          <% }) %>
-        </div>
+        <p class="goal-mystery">🔒 Yunus'tan sana <%= locked.length %> gizli not var. Belki yarın, belki 10 gün sonra, belki de yıllar sonra... zamanı gelince kendiliğinden açılacak.</p>
         <% } %>
       </section>
 
