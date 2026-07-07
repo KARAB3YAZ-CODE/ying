@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>Panel</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .admin-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+    .admin-wrap h1 { font-size: 1.4rem; margin-bottom: 0.3rem; }
+    .admin-wrap h2 { font-size: 1.1rem; margin: 2rem 0 0.8rem; color: #e50914; }
+    .admin-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .admin-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 0.5rem; font-size: 0.88rem; }
+    .admin-item .meta { color: #999; font-size: 0.78rem; margin-bottom: 0.3rem; }
+    .admin-item img { max-width: 160px; border-radius: 6px; display: block; margin-top: 0.4rem; }
+    .admin-empty { color: #666; font-size: 0.85rem; }
+    .admin-badge { display: inline-block; background: #2a2a2a; color: #8fd66a; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.72rem; margin-left: 0.4rem; }
+  </style>
+</head>
+<body>
+  <div class="admin-wrap">
+    <div class="admin-top">
+      <h1>Panel</h1>
+      <form method="POST" action="<%= base %>/logout"><button type="submit" class="btn-nav">Çıkış</button></form>
+    </div>
+
+    <h2>Anılar (<%= notes.length %>)</h2>
+    <% if (notes.length === 0) { %><p class="admin-empty">Henüz anı yok.</p><% } %>
+    <% notes.slice().reverse().forEach(function(n) { %>
+    <div class="admin-item">
+      <div class="meta"><%= n.author %> · <%= new Date(n.createdAt).toLocaleString('tr-TR') %></div>
+      <% if (n.content) { %><div><%= n.content %></div><% } %>
+      <% if (n.photo) { %><img src="<%= n.photo %>"><% } %>
+    </div>
+    <% }) %>
+
+    <h2>Günlük — bekleyen (<%= daily.pending.length %>) · açılan (<%= daily.revealed.length %>) · oy: <%= daily.votes.join(', ') || '-' %></h2>
+    <% if (daily.pending.length === 0 && daily.revealed.length === 0) { %><p class="admin-empty">Henüz giriş yok.</p><% } %>
+    <% daily.pending.concat(daily.revealed).sort(function(a,b){ return a.createdAt < b.createdAt ? 1 : -1; }).forEach(function(d) { %>
+    <div class="admin-item">
+      <div class="meta"><%= d.author %> · <%= new Date(d.createdAt).toLocaleString('tr-TR') %><% if (daily.pending.includes(d)) { %><span class="admin-badge">bekliyor</span><% } %></div>
+      <% if (d.content) { %><div><%= d.content %></div><% } %>
+      <% if (d.photo) { %><img src="<%= d.photo %>"><% } %>
+    </div>
+    <% }) %>
+
+    <h2>Hedefler</h2>
+    <% if (goals.entries.length === 0) { %><p class="admin-empty">Henüz giriş yok.</p><% } %>
+    <% goals.entries.forEach(function(g) { %>
+    <div class="admin-item">
+      <div class="meta"><%= g.author %> · <%= g.category %> · <%= new Date(g.createdAt).toLocaleString('tr-TR') %></div>
+      <div><%= g.content %></div>
+    </div>
+    <% }) %>
+
+    <h2>Yunus'dan Not (<%= personal.entries.length %>)</h2>
+    <% if (personal.entries.length === 0) { %><p class="admin-empty">Henüz not yok.</p><% } %>
+    <% personal.entries.forEach(function(p) { %>
+    <div class="admin-item">
+      <div class="meta">→ <%= p.to %> · açılış: <%= p.unlockDate %> · yazıldı: <%= new Date(p.createdAt).toLocaleString('tr-TR') %></div>
+      <div><%= p.content %></div>
+    </div>
+    <% }) %>
+
+    <h2>Yunus &amp; Gizem — açık mı: <%= love.revealed ? 'evet' : 'hayır' %> · oy: <%= love.votes.join(', ') || '-' %></h2>
+    <% if (love.entries.length === 0) { %><p class="admin-empty">Henüz giriş yok.</p><% } %>
+    <% love.entries.forEach(function(l) { %>
+    <div class="admin-item">
+      <div class="meta"><%= l.author %> · <%= l.category %> · <%= new Date(l.createdAt).toLocaleString('tr-TR') %></div>
+      <div><%= l.content %></div>
+    </div>
+    <% }) %>
+  </div>
+</body>
+</html>

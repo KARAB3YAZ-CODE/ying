@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>Panel</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="profile-screen">
+    <div class="brand">Panel</div>
+    <div class="modal" style="margin-top: 2rem;">
+      <h2>Giriş</h2>
+      <form method="POST" action="<%= base %>">
+        <input type="password" name="password" placeholder="Şifre" required autocomplete="off" autofocus>
+        <% if (error) { %><div class="error"><%= error %></div><% } %>
+        <button type="submit" class="btn-primary">Gir</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
