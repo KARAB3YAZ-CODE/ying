@@ -835,6 +835,22 @@ body {
   border-color: #e50914;
 }
 
+.daily-select {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  color-scheme: dark;
+}
+
+.daily-select:focus {
+  outline: none;
+  border-color: #e50914;
+}
+
 .goal-form .hero-btn {
   align-self: flex-start;
 }

@@ -72,3 +72,11 @@ export async function getGoals() {
 export async function saveGoals(goals) {
   return writeValue('ying:goals', 'goals.json', goals);
 }
+
+export async function getPersonalNotes() {
+  return readValue('ying:personal', 'personal.json');
+}
+
+export async function savePersonalNotes(data) {
+  return writeValue('ying:personal', 'personal.json', data);
+}

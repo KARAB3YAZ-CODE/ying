@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import notesRoutes from './routes/notes.js';
 import dailyRoutes from './routes/daily.js';
 import goalsRoutes from './routes/goals.js';
+import personalRoutes from './routes/personal.js';
 import { requireMember } from './middleware/auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -42,6 +43,7 @@ export function createApp() {
   app.use('/notes', requireMember, notesRoutes(upload));
   app.use('/daily', requireMember, dailyRoutes(upload));
   app.use('/goals', requireMember, goalsRoutes());
+  app.use('/personal', requireMember, personalRoutes());
 
   // safety net: any error passed to next() (e.g. via asyncHandler) ends up
   // here instead of hanging the request or crashing the whole function

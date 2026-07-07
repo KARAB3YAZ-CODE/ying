@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>Ying - Yunus'dan Not</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="browse-page">
+    <%- include('_nav', { member: member, photo: photo, active: 'personal' }) %>
+
+    <div class="browse-content daily-content">
+      <% if (isAuthor) { %>
+      <section class="daily-status-card">
+        <h3>Kişiye özel not yaz</h3>
+        <p>Sadece sen yazabilirsin. Belirlediğin tarihte, sadece seçtiğin kişiye açılacak — diğerleri göremeyecek.</p>
+        <form method="POST" action="/personal" class="goal-form">
+          <select name="to" class="daily-select" required>
+            <option value="">Kime?</option>
+            <% recipients.forEach(function(r) { %>
+            <option value="<%= r.name %>"><%= r.name %></option>
+            <% }) %>
+          </select>
+          <input type="date" name="unlockDate" class="daily-select" required>
+          <textarea name="content" placeholder="Notun ne?" class="goal-textarea" required></textarea>
+          <button type="submit" class="hero-btn hero-btn-primary">Yaz ve kilitle</button>
+        </form>
+      </section>
+
+      <% if (sent.length > 0) { %>
+      <section class="row">
+        <div class="row-header"><h3>Yazdığın notlar</h3></div>
+        <% sent.forEach(function(e) { %>
+        <div class="daily-pending-item">
+          <span><%= e.to %></span>
+          <span><%= e.unlocked ? '🔓' : '🔒' %> <%= new Date(e.unlockDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
+          <% if (!e.unlocked) { %>
+          <form method="POST" action="/personal/delete/<%= encodeURIComponent(e.id) %>"><button type="submit">Sil</button></form>
+          <% } %>
+        </div>
+        <% }) %>
+      </section>
+      <% } %>
+
+      <% } else { %>
+      <section class="daily-status-card">
+        <h3>Yunus'tan sana notlar</h3>
+        <% if (locked.length === 0 && unlocked.length === 0) { %>
+        <p>Henüz sana yazılmış bir not yok.</p>
+        <% } else if (locked.length > 0) { %>
+        <p>Aşağıdaki notlar belirtilen tarihte sana açılacak:</p>
+        <div class="daily-votes">
+          <% locked.forEach(function(e) { %>
+          <span class="daily-vote-chip">🔒 <%= new Date(e.unlockDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
+          <% }) %>
+        </div>
+        <% } %>
+      </section>
+
+      <% if (unlocked.length > 0) { %>
+      <section class="row">
+        <div class="row-header"><h3>Sana açılan notlar</h3></div>
+        <div class="goal-entries" style="margin: 0 5%;">
+          <% unlocked.forEach(function(e) { %>
+          <div class="goal-entry">
+            <span class="goal-entry-author"><%= new Date(e.unlockDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %> için</span>
+            <p class="goal-entry-text"><%= e.content %></p>
+          </div>
+          <% }) %>
+        </div>
+      </section>
+      <% } %>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var nav = document.getElementById('topNav');
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
