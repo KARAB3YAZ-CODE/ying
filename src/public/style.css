@@ -618,6 +618,14 @@ body {
 .nav-tabs {
   display: flex;
   gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-tab {
@@ -627,6 +635,8 @@ body {
   font-weight: 600;
   padding: 0.4rem 0.9rem;
   border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: color 0.2s, background 0.2s;
 }
 

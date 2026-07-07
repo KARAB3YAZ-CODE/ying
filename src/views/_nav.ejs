@@ -5,6 +5,7 @@
     <a href="/daily" class="nav-tab <%= active === 'daily' ? 'active' : '' %>">Günlük</a>
     <a href="/goals" class="nav-tab <%= active === 'goals' ? 'active' : '' %>">Hedefler</a>
     <a href="/personal" class="nav-tab <%= active === 'personal' ? 'active' : '' %>">Yunus'dan Not</a>
+    <a href="/love" class="nav-tab <%= active === 'love' ? 'active' : '' %>">Yunus &amp; Gizem</a>
   </div>
   <div class="nav-right">
     <div class="nav-user">
@@ -18,3 +19,9 @@
     </form>
   </div>
 </nav>
+<script>
+  (function() {
+    var activeTab = document.querySelector('.nav-tab.active');
+    if (activeTab) activeTab.scrollIntoView({ inline: 'center', block: 'nearest' });
+  })();
+</script>

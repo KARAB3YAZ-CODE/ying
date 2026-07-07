@@ -80,3 +80,11 @@ export async function getPersonalNotes() {
 export async function savePersonalNotes(data) {
   return writeValue('ying:personal', 'personal.json', data);
 }
+
+export async function getLove() {
+  return readValue('ying:love', 'love.json');
+}
+
+export async function saveLove(data) {
+  return writeValue('ying:love', 'love.json', data);
+}

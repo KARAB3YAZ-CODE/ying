@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>Ying - Gizem ve Yunus Aşkı</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="browse-page">
+    <%- include('_nav', { member: member, photo: photo, active: 'love' }) %>
+
+    <div class="browse-content daily-content">
+      <section class="daily-status-card">
+        <h3>💛 Gizem ve Yunus Aşkı</h3>
+        <% if (revealed) { %>
+        <p class="goal-status-open">🔓 Açıldı — herkesin mesajı aşağıda.</p>
+        <% } else { %>
+        <p>Kız mı erkek mi tahminin ne? Teyze/anne/baba olmak nasıl bir his? Yunus ve Gizem'e söylemek istediğin bir şey — hepsi burada birikiyor. Sadece Yunus ve Gizem onaylayınca hepsi birden herkese açılacak.</p>
+
+        <div class="daily-today">
+          <span class="daily-today-label">Kim yazdı</span>
+          <div class="daily-votes">
+            <% config.members.forEach(function(m) { %>
+            <span class="daily-vote-chip <%= writtenBy.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= writtenBy.includes(m.name) ? ' ✓' : '' %></span>
+            <% }) %>
+          </div>
+        </div>
+
+        <div class="daily-today">
+          <span class="daily-today-label">Onay (Yunus &amp; Gizem)</span>
+          <div class="daily-votes">
+            <% approvers.forEach(function(a) { %>
+            <span class="daily-vote-chip <%= votes.includes(a) ? 'voted' : '' %>"><%= a %><%= votes.includes(a) ? ' ✓' : '' %></span>
+            <% }) %>
+          </div>
+          <% if (canVote) { %>
+          <form method="POST" action="/love/vote">
+            <button type="submit" class="hero-btn hero-btn-primary">
+              <%= votes.includes(member) ? 'Onayımı geri al' : ('Onayla ve aç (' + votes.length + '/2)') %>
+            </button>
+          </form>
+          <% } %>
+        </div>
+        <% } %>
+      </section>
+
+      <% if (!revealed) { %>
+        <% if (alreadyWrote) { %>
+        <div class="daily-status-card daily-already-wrote">
+          <p>✓ Notunu yazdın, kilitlendi. Açılana kadar kimse (sen dahil) tekrar göremeyecek.</p>
+        </div>
+        <% } else { %>
+        <div class="compose-bar">
+          <form method="POST" action="/love" class="goal-form" onsubmit="return confirm('Bu notu kaydettikten sonra degistiremez ya da silemezsin. Eklemek istedigin baska bir sey var mi? Emin misin?');">
+            <textarea name="content" placeholder="Kız mı erkek mi? Teyze/anne/baba olmak nasıl bir his? Yunus ve Gizem'e mesajın ne?" class="goal-textarea" required></textarea>
+            <button type="submit" class="compose-btn">Yaz ve kilitle</button>
+          </form>
+        </div>
+        <% } %>
+      <% } else { %>
+        <% if (entries.length > 0) { %>
+        <section class="row">
+          <div class="row-header"><h3>Herkesin mesajı</h3></div>
+          <div class="goal-entries" style="margin: 0 5%;">
+            <% entries.forEach(function(e) { %>
+            <div class="goal-entry">
+              <span class="goal-entry-author"><%= e.author %></span>
+              <p class="goal-entry-text"><%= e.content %></p>
+            </div>
+            <% }) %>
+          </div>
+        </section>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var nav = document.getElementById('topNav');
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+    })();
+
+    // live sync: reload when someone else writes or approval status changes
+    (function() {
+      var lastStatus = null;
+      setInterval(function() {
+        if (document.hidden) return;
+        fetch('/love/status').then(function(r) { return r.json(); }).then(function(data) {
+          var s = JSON.stringify(data);
+          if (lastStatus === null) { lastStatus = s; return; }
+          if (s !== lastStatus) location.reload();
+        }).catch(function() {});
+      }, 5000);
+    })();
+  </script>
+</body>
+</html>
