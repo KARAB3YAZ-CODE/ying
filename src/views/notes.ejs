@@ -11,33 +11,35 @@
   <div class="browse-page">
     <%- include('_nav', { member: member, photo: photo, active: 'notes' }) %>
 
-    <!-- HERO -->
+    <!-- HERO (rotates through recent memories automatically) -->
     <% if (notes.length > 0) { %>
-    <% var hero = notes[0]; %>
-    <% var heroType = hero.photo ? hero.content ? 'Fotoğraflı Not' : 'Fotoğraf' : 'Not'; %>
-    <div class="hero-section" style="<%= hero.photo ? 'background-image: url(' + hero.photo + ')' : 'background: linear-gradient(135deg, #1f1f1f, #2a2a2a)' %>">
-      <div class="hero-gradient"></div>
-      <div class="hero-vignette"></div>
-      <div class="hero-content">
-        <div class="hero-badge-group">
-          <span class="hero-badge">En Son</span>
-          <span class="hero-badge hero-badge-type"><%= heroType %></span>
-          <% if (hero.content && hero.content.length > 80) { %><span class="hero-badge hero-badge-long">Uzun Anı</span><% } %>
-        </div>
-        <h2 class="hero-title"><%= hero.content ? hero.content.slice(0, 80) : '📷 Bir Fotoğraf' %></h2>
-        <% if (hero.content && hero.content.length > 80) { %>
-        <p class="hero-desc"><%= hero.content.slice(0, 200) %><% if (hero.content.length > 200) { %>…<% } %></p>
-        <% } %>
-        <div class="hero-meta">
-          <span class="hero-year"><%= new Date(hero.createdAt).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
-          <span class="hero-dot">·</span>
-          <span class="hero-author"><%= hero.author %></span>
-        </div>
-        <div class="hero-actions">
-          <button class="hero-btn hero-btn-primary" onclick="openNote('<%= hero.id %>')">▶ Anıyı Aç</button>
-          <button class="hero-btn hero-btn-secondary" onclick="document.querySelector('.compose-input').focus();">+ Yeni Anı</button>
+    <% var heroSlides = notes.slice(-8).reverse(); %>
+    <div class="hero-stack">
+      <% heroSlides.forEach(function(hero, i) { %>
+      <div class="hero-section hero-slide <%= i === 0 ? 'active' : '' %>" style="<%= hero.photo ? 'background-image: url(' + hero.photo + ')' : 'background: linear-gradient(135deg, #1f1f1f, #2a2a2a)' %>">
+        <div class="hero-gradient"></div>
+        <div class="hero-vignette"></div>
+        <div class="hero-content">
+          <div class="hero-badge-group">
+            <span class="hero-badge">Anı <%= i + 1 %>/<%= heroSlides.length %></span>
+            <% if (hero.content && hero.content.length > 80) { %><span class="hero-badge hero-badge-long">Uzun Anı</span><% } %>
+          </div>
+          <h2 class="hero-title"><%= hero.content ? hero.content.slice(0, 80) : '📷 Bir Fotoğraf' %></h2>
+          <% if (hero.content && hero.content.length > 80) { %>
+          <p class="hero-desc"><%= hero.content.slice(0, 200) %><% if (hero.content.length > 200) { %>…<% } %></p>
+          <% } %>
+          <div class="hero-meta">
+            <span class="hero-year"><%= new Date(hero.createdAt).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+            <span class="hero-dot">·</span>
+            <span class="hero-author"><%= hero.author %></span>
+          </div>
+          <div class="hero-actions">
+            <button class="hero-btn hero-btn-primary" onclick="openNote('<%= hero.id %>')">▶ Anıyı Aç</button>
+            <button class="hero-btn hero-btn-secondary" onclick="document.querySelector('.compose-photo input').click();">+ Yeni Anı</button>
+          </div>
         </div>
       </div>
+      <% }) %>
     </div>
     <% } else { %>
     <div class="hero-section hero-empty" style="background: linear-gradient(135deg, #1a1a1a, #0d0d0d)">
@@ -48,22 +50,22 @@
           <span class="hero-badge">Hoş Geldin</span>
         </div>
         <h2 class="hero-title">Henüz anın yok</h2>
-        <p class="hero-desc">İlk anını yaz veya bir fotoğraf yükle — burası senin özel anılar koleksiyonun.</p>
+        <p class="hero-desc">İlk fotoğrafını yükleyip üzerine bir not bırak — burası senin özel anılar koleksiyonun.</p>
         <div class="hero-actions">
-          <button class="hero-btn hero-btn-primary" onclick="document.querySelector('.compose-input').focus();">+ İlk Anını Oluştur</button>
+          <button class="hero-btn hero-btn-primary" onclick="document.querySelector('.compose-photo input').click();">+ İlk Anını Oluştur</button>
         </div>
       </div>
     </div>
     <% } %>
 
     <div class="browse-content">
-      <!-- COMPOSE BAR -->
+      <!-- COMPOSE BAR: her anı bir fotoğraf + üzerine isteğe bağlı bir not -->
       <div class="compose-bar">
         <form method="POST" action="/notes" enctype="multipart/form-data" class="compose-form">
-          <input name="content" placeholder="Ne düşünüyorsun?" class="compose-input">
+          <input name="content" placeholder="Fotoğrafına bir not bırak (isteğe bağlı)..." class="compose-input">
           <label class="compose-photo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <input type="file" name="photo" accept="image/*" onchange="this.form.submit()">
+            <input type="file" name="photo" accept="image/*" required>
           </label>
           <button type="submit" class="compose-btn">Gönder</button>
         </form>
@@ -79,7 +81,7 @@
         <div class="row-empty">Henüz anın yok</div>
         <% } else { %>
         <div class="row-scroll" id="row-all">
-          <% notes.forEach(function(note) { %>
+          <% notes.slice().reverse().forEach(function(note) { %>
           <div class="card" onclick="openNote('<%= note.id %>')">
             <div class="card-art" style="<%= note.photo ? 'background-image: url(' + note.photo + ')' : 'background: linear-gradient(135deg, #2a2a2a, #1f1f1f)' %>">
               <% if (!note.photo) { %>
@@ -99,61 +101,6 @@
         </div>
         <% } %>
       </section>
-
-      <!-- ROW: Fotoğraflar -->
-      <% var photos = notes.filter(function(n) { return n.photo; }); %>
-      <% if (photos.length > 0) { %>
-      <section class="row">
-        <div class="row-header">
-          <h3>Fotoğraflar</h3>
-          <a href="#" class="row-seeall" onclick="document.querySelector('#row-photos').scrollLeft = 0; return false;">Tümünü Gör</a>
-        </div>
-        <div class="row-scroll" id="row-photos">
-          <% photos.forEach(function(note) { %>
-          <div class="card" onclick="openNote('<%= note.id %>')">
-            <div class="card-art" style="background-image: url(<%= note.photo %>)">
-              <div class="card-hover">
-                <span class="card-hover-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
-                <span class="card-hover-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></span>
-              </div>
-              <div class="card-bottom">
-                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
-                <span class="card-bottom-author"><%= note.author %></span>
-              </div>
-            </div>
-          </div>
-          <% }) %>
-        </div>
-      </section>
-      <% } %>
-
-      <!-- ROW: Notlar -->
-      <% var textNotes = notes.filter(function(n) { return !n.photo; }); %>
-      <% if (textNotes.length > 0) { %>
-      <section class="row">
-        <div class="row-header">
-          <h3>Notlar</h3>
-          <a href="#" class="row-seeall" onclick="document.querySelector('#row-text').scrollLeft = 0; return false;">Tümünü Gör</a>
-        </div>
-        <div class="row-scroll" id="row-text">
-          <% textNotes.forEach(function(note) { %>
-          <div class="card" onclick="openNote('<%= note.id %>')">
-            <div class="card-art" style="background: linear-gradient(135deg, <%= note.author === 'Yunus' ? '#e50914' : note.author === 'İrem' ? '#e87c03' : note.author === 'Nursene' ? '#5fa33e' : '#0080ff' %>22, #1a1a1a)">
-              <div class="card-noimg" style="font-size:1.6rem"><%= note.content ? note.content.slice(0, 1).toUpperCase() : '📝' %></div>
-              <div class="card-hover">
-                <span class="card-hover-title"><%= note.content ? note.content.slice(0, 50) : 'Not' %></span>
-                <span class="card-hover-date"><%= new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) %></span>
-              </div>
-              <div class="card-bottom">
-                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : 'Not' %></span>
-                <span class="card-bottom-author"><%= note.author %></span>
-              </div>
-            </div>
-          </div>
-          <% }) %>
-        </div>
-      </section>
-      <% } %>
     </div>
   </div>
 
@@ -224,6 +171,18 @@
           ticking = true;
         }
       });
+    })();
+
+    // hero slideshow: rotate through recent memories automatically
+    (function() {
+      var slides = document.querySelectorAll('.hero-slide');
+      if (slides.length < 2) return;
+      var current = 0;
+      setInterval(function() {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+      }, 6000);
     })();
   </script>
 </body>

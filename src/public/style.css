@@ -885,6 +885,29 @@ body {
   margin-top: -60px;
 }
 
+.hero-stack {
+  position: relative;
+  height: 75vh;
+  min-height: 420px;
+  margin-top: -60px;
+}
+
+.hero-stack .hero-section {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  min-height: 0;
+  margin-top: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
+.hero-stack .hero-section.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .hero-empty {
   align-items: center;
   padding-bottom: 5rem;
@@ -1446,6 +1469,10 @@ body {
     height: 60vh;
     min-height: 340px;
     padding: 0 5% 5rem;
+  }
+  .hero-stack {
+    height: 60vh;
+    min-height: 340px;
   }
   .hero-title {
     font-size: 1.6rem;

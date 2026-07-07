@@ -16,21 +16,18 @@ export default function notesRoutes(upload) {
     const { content } = req.body;
     const file = req.file;
 
-    if ((!content || !content.trim()) && !file) return res.redirect('/notes');
+    if (!file) return res.redirect('/notes');
 
     const notes = await getNotes();
     const entry = {
       id: Date.now().toString(36),
       author: req.session.member,
       createdAt: new Date().toISOString(),
+      photo: await savePhoto(file),
     };
 
     if (content && content.trim()) {
       entry.content = content.trim();
-    }
-
-    if (file) {
-      entry.photo = await savePhoto(file);
     }
 
     notes.push(entry);
