@@ -35,14 +35,17 @@
     </div>
     <% }) %>
 
-    <h2>Günlük — bekleyen (<%= daily.pending.length %>) · açılan (<%= daily.revealed.length %>) · oy: <%= daily.votes.join(', ') || '-' %></h2>
-    <% if (daily.pending.length === 0 && daily.revealed.length === 0) { %><p class="admin-empty">Henüz giriş yok.</p><% } %>
-    <% daily.pending.concat(daily.revealed).sort(function(a,b){ return a.createdAt < b.createdAt ? 1 : -1; }).forEach(function(d) { %>
-    <div class="admin-item">
-      <div class="meta"><%= d.author %> · <%= new Date(d.createdAt).toLocaleString('tr-TR') %><% if (daily.pending.includes(d)) { %><span class="admin-badge">bekliyor</span><% } %></div>
-      <% if (d.content) { %><div><%= d.content %></div><% } %>
-      <% if (d.photo) { %><img src="<%= d.photo %>"><% } %>
-    </div>
+    <h2>Günlük — <%= daily.rounds.length %> tur</h2>
+    <% if (daily.rounds.length === 0) { %><p class="admin-empty">Henüz giriş yok.</p><% } %>
+    <% daily.rounds.forEach(function(r) { %>
+      <div style="color:#888;font-size:0.78rem;margin:0.5rem 0 0.2rem">Round <%= r.id %> · <%= r.entries.length %> yazı · <%= r.approvedBy.length %>/4 onay · <%= r.revealed ? 'Açık' : 'Kapalı' %> · <%= new Date(r.startDate).toLocaleString('tr-TR') %></div>
+      <% r.entries.forEach(function(d) { %>
+      <div class="admin-item">
+        <div class="meta"><%= d.author %> · <%= new Date(d.createdAt).toLocaleString('tr-TR') %></div>
+        <% if (d.content) { %><div><%= d.content %></div><% } %>
+        <% if (d.photo) { %><img src="<%= d.photo %>"><% } %>
+      </div>
+      <% }) %>
     <% }) %>
 
     <h2>Hedefler</h2>
