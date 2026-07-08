@@ -7,17 +7,17 @@
     },
     {
       "name": "İrem",
-      "password": "",
+      "password": "irem123",
       "photo": "/uploads/irem.jpeg"
     },
     {
       "name": "Nursene",
-      "password": "",
+      "password": "nursene123",
       "photo": "/uploads/nuni.jpeg"
     },
     {
       "name": "Gizem",
-      "password": "",
+      "password": "gizem123",
       "photo": "/uploads/gizem.jpeg"
     }
   ]

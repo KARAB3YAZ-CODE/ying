@@ -6,6 +6,53 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <title>Ying - Günlük</title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .daily-status-card h3 { display: flex; align-items: center; gap: 0.5rem; }
+    .daily-status-card h3 .lock-icon { font-size: 0.9rem; }
+    .daily-status-card .sub { color: #999; font-size: 0.85rem; margin-bottom: 1rem; }
+
+    .daily-writers { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem; }
+    .daily-writer { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; padding: 0.3rem 0; }
+    .daily-writer .check { color: #8fd66a; font-weight: 700; width: 1.2rem; text-align: center; flex-shrink: 0; }
+    .daily-writer .pending { color: #555; width: 1.2rem; text-align: center; flex-shrink: 0; }
+    .daily-writer .name { color: #ddd; }
+    .daily-writer .name.muted { color: #555; }
+    .daily-writer .approve-badge { font-size: 0.65rem; background: rgba(94,163,62,0.15); color: #8fd66a; padding: 0.1rem 0.5rem; border-radius: 999px; margin-left: 0.3rem; }
+
+    .daily-section-label { color: #777; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.4rem; }
+
+    .daily-progress { display: flex; align-items: center; gap: 0.6rem; margin: 0.5rem 0; }
+    .daily-progress-bar { flex: 1; height: 4px; background: #2a2a2a; border-radius: 3px; overflow: hidden; }
+    .daily-progress-bar .fill { height: 100%; background: #8fd66a; border-radius: 3px; transition: width 0.4s ease; }
+    .daily-progress-label { font-size: 0.78rem; color: #999; flex-shrink: 0; }
+
+    .daily-approve-btn { background: #8fd66a; color: #0d0d0d; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .daily-approve-btn:active { transform: scale(0.96); background: #7ac05a; }
+
+    .daily-entry { background: linear-gradient(155deg, #1e1e1e 0%, #161616 100%); border: 1px solid #262626; border-radius: 14px; padding: 1rem 1.2rem; margin: 0 5% 0.6rem; }
+    .daily-entry-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.3rem; }
+    .daily-entry-author { color: #e50914; font-weight: 700; font-size: 0.85rem; }
+    .daily-entry-date { color: #666; font-size: 0.75rem; }
+    .daily-entry-text { color: #ccc; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; }
+    .daily-entry-img { width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; margin-top: 0.6rem; background: #000; }
+
+    .daily-round-label { display: block; color: #666; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 1.2rem 5% 0.5rem; }
+    .daily-round-label:first-of-type { margin-top: 0; }
+
+    .daily-locked-entries { margin: 0 5% 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .daily-locked-entry { display: flex; align-items: center; gap: 0.6rem; color: #555; font-size: 0.85rem; padding: 0.6rem 0.9rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid #222; }
+    .daily-locked-entry .lock { color: #444; flex-shrink: 0; }
+    .daily-locked-entry .author { color: #777; }
+
+    .daily-empty { color: #555; font-size: 0.85rem; text-align: center; padding: 1.5rem 5%; }
+
+    .daily-own-check { color: #8fd66a; font-weight: 600; font-size: 0.85rem; margin-top: 0.3rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+
+    @media (max-width: 640px) {
+      .daily-entry { margin-left: 4%; margin-right: 4%; }
+      .daily-locked-entries { margin-left: 4%; margin-right: 4%; }
+    }
+  </style>
 </head>
 <body>
   <div class="browse-page">
@@ -13,150 +60,137 @@
 
     <div class="browse-content daily-content">
       <section class="daily-status-card">
-        <h3>📖 Günlük</h3>
-        <% if (canWrite) { %>
-          <p>Günlüğe yazma sırası sende — yeni bir giriş ekleyebilirsin.</p>
-        <% } else { %>
-          <p>Sıradaki günlük girişine kalan süre:</p>
-          <div class="daily-countdown" id="countdown">
-            <span id="cd-hours">00</span><span class="cd-sep">:</span>
-            <span id="cd-minutes">00</span><span class="cd-sep">:</span>
-            <span id="cd-seconds">00</span>
+        <h3>
+          <span class="lock-icon"><%= round.revealed ? '🔓' : '🔒' %></span>
+          Günlük
+        </h3>
+        <p class="sub">
+          <% if (round.revealed) { %>
+            Bu turdaki notlar açıklandı! 🎉
+          <% } else { %>
+            Notlar kilitli. Herkes yazıp onaylayınca bütün notlar sırayla açılacak.
+          <% } %>
+        </p>
+
+        <!-- Writer status list -->
+        <div class="daily-section-label">Durum</div>
+        <div class="daily-writers">
+          <% status.forEach(function(s) { %>
+            <div class="daily-writer">
+              <% if (s.wrote) { %>
+                <span class="check">✓</span>
+              <% } else { %>
+                <span class="pending">○</span>
+              <% } %>
+              <span class="name <%= s.wrote ? '' : 'muted' %>"><%= s.name %></span>
+              <% if (s.wrote && s.approved) { %>
+                <span class="approve-badge">onayladı</span>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Approval progress -->
+        <% if (!round.revealed) { %>
+          <div class="daily-progress">
+            <div class="daily-progress-bar">
+              <div class="fill" style="width: <%= (round.approvedBy.length / totalMembers) * 100 %>%"></div>
+            </div>
+            <span class="daily-progress-label"><%= round.approvedBy.length %>/<%= totalMembers %> onay</span>
           </div>
-          <p class="daily-who-wrote">Son yazan: <strong><%= lastEntryAuthor %></strong></p>
+        <% } %>
+
+        <!-- Compose form (if not written yet) -->
+        <% if (!myEntry) { %>
+          <form method="POST" action="/daily" enctype="multipart/form-data" class="compose-form" style="margin-top:0.5rem">
+            <input name="content" placeholder="Bugün ne oldu?" class="compose-input">
+            <label class="compose-photo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <input type="file" name="photo" accept="image/*">
+            </label>
+            <button type="submit" class="compose-btn">Yaz</button>
+          </form>
+        <% } else { %>
+          <div class="daily-own-check">✓ Bu turda yazdın</div>
+          <% if (!round.approvedBy.includes(member)) { %>
+            <form method="POST" action="/daily/approve" style="margin-top:0.5rem">
+              <button type="submit" class="daily-approve-btn">✓ Onayla</button>
+            </form>
+          <% } %>
         <% } %>
       </section>
 
-      <% if (canWrite) { %>
-      <div class="compose-bar">
-        <form method="POST" action="/daily" enctype="multipart/form-data" class="compose-form">
-          <input name="content" placeholder="Bugün ne oldu?" class="compose-input">
-          <label class="compose-photo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <input type="file" name="photo" accept="image/*" onchange="this.form.submit()">
-          </label>
-          <button type="submit" class="compose-btn">Ekle</button>
-        </form>
-      </div>
+      <!-- Revealed entries for this round -->
+      <% if (round.revealed && round.entries.length > 0) { %>
+        <span class="daily-round-label">Bu Tur</span>
+        <% round.entries.sort(function(a,b) { return new Date(a.createdAt) - new Date(b.createdAt); }).forEach(function(entry) { %>
+          <div class="daily-entry">
+            <div class="daily-entry-header">
+              <span class="daily-entry-author"><%= entry.author %></span>
+              <span class="daily-entry-date"><%= new Date(entry.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></span>
+            </div>
+            <% if (entry.photo) { %>
+              <img src="<%= entry.photo %>" class="daily-entry-img" loading="lazy">
+            <% } %>
+            <% if (entry.content) { %>
+              <div class="daily-entry-text"><%= entry.content %></div>
+            <% } %>
+          </div>
+        <% }) %>
       <% } %>
 
-      <% if (entries.length === 0) { %>
-      <div class="row-empty">Henüz hiç günlük girişi yok — ilk girişi sen yap</div>
-      <% } else { %>
-      <section class="row">
-        <div class="row-header"><h3>Geçmiş Günlükler</h3></div>
-        <% groupedEntries.forEach(function(group) { %>
-        <h4 class="daily-date-header"><%= group.label %></h4>
-        <div class="row-scroll">
-          <% group.items.forEach(function(note) { %>
-          <div class="card" onclick="openDaily('<%= note.id %>')">
-            <div class="card-art" style="<%= note.photo ? 'background-image: url(' + note.photo + ')' : 'background: linear-gradient(135deg, #2a2a2a, #1f1f1f)' %>">
-              <% if (!note.photo) { %>
-              <div class="card-noimg"><%= note.content ? note.content[0].toUpperCase() : '📝' %></div>
-              <% } %>
-              <div class="card-bottom">
-                <span class="card-bottom-title"><%= note.content ? note.content.slice(0, 50) : '📷 Fotoğraf' %></span>
-                <span class="card-bottom-author"><%= note.author %></span>
-              </div>
+      <!-- Not revealed yet: show who wrote as locked entries -->
+      <% if (!round.revealed && round.entries.length > 0) { %>
+        <span class="daily-round-label">Yazılanlar (kilitli)</span>
+        <div class="daily-locked-entries">
+          <% round.entries.forEach(function(entry) { %>
+            <div class="daily-locked-entry">
+              <span class="lock">🔒</span>
+              <span class="author"><%= entry.author %> yazdı</span>
             </div>
-          </div>
           <% }) %>
         </div>
+      <% } %>
+
+      <!-- Previous rounds -->
+      <% if (previousRounds.length > 0) { %>
+        <span class="daily-round-label">Geçmiş Turlar</span>
+        <% previousRounds.forEach(function(r) { %>
+          <% r.entries.sort(function(a,b) { return new Date(a.createdAt) - new Date(b.createdAt); }).forEach(function(entry) { %>
+            <div class="daily-entry">
+              <div class="daily-entry-header">
+                <span class="daily-entry-author"><%= entry.author %></span>
+                <span class="daily-entry-date"><%= new Date(entry.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></span>
+              </div>
+              <% if (entry.photo) { %>
+                <img src="<%= entry.photo %>" class="daily-entry-img" loading="lazy">
+              <% } %>
+              <% if (entry.content) { %>
+                <div class="daily-entry-text"><%= entry.content %></div>
+              <% } %>
+            </div>
+          <% }) %>
         <% }) %>
-      </section>
+      <% } %>
+
+      <% if (round.entries.length === 0) { %>
+        <div class="daily-empty">Henüz kimse yazmadı. İlk notu sen bırak!</div>
       <% } %>
     </div>
   </div>
 
-  <div class="note-overlay" id="noteOverlay">
-    <div class="note-preview" id="notePreview"></div>
-  </div>
-
   <script>
-    var entriesData = <%- JSON.stringify(entries).replace(/</g, '\\u003c') %>;
-    var msLeft = <%- msLeft %>;
-
     (function() {
-      var cdEl = document.getElementById('countdown');
-      if (!cdEl) return;
-
-      var hEl = document.getElementById('cd-hours');
-      var mEl = document.getElementById('cd-minutes');
-      var sEl = document.getElementById('cd-seconds');
-
-      function pad(n) { return String(n).padStart(2, '0'); }
-
-      function tick() {
-        msLeft = Math.max(0, msLeft - 1000);
-        var totalSec = Math.floor(msLeft / 1000);
-        var h = Math.floor(totalSec / 3600);
-        var m = Math.floor((totalSec % 3600) / 60);
-        var s = totalSec % 60;
-        hEl.textContent = pad(h);
-        mEl.textContent = pad(m);
-        sEl.textContent = pad(s);
-        if (msLeft <= 0) location.reload();
-      }
-
-      setInterval(tick, 1000);
-    })();
-
-    // live sync
-    (function() {
-      var last = null;
+      var lastId = '<%= round.id %>';
       setInterval(function() {
         if (document.hidden) return;
         fetch('/daily/status').then(function(r) { return r.json(); }).then(function(d) {
-          var s = JSON.stringify(d);
-          if (last === null) { last = s; return; }
-          if (s !== last) location.reload();
+          if (d.id !== lastId || d.revealed !== <%= round.revealed %>) location.reload();
         }).catch(function() {});
       }, 5000);
     })();
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, function(ch) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-      });
-    }
-
-    function openDaily(id) {
-      var note = entriesData.find(function(n) { return n.id === id; });
-      if (!note) return;
-      var overlay = document.getElementById('noteOverlay');
-      var preview = document.getElementById('notePreview');
-
-      var html = '<div class="note-preview-top">';
-      html += '<button class="note-preview-close" onclick="closeNote()">✕</button>';
-      html += '<span class="note-preview-author">' + escapeHtml(note.author) + '</span>';
-      var d = new Date(note.createdAt);
-      html += '<span class="note-preview-date">' + d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>';
-      html += '</div>';
-      if (note.photo) {
-        html += '<img src="' + escapeHtml(note.photo) + '" class="note-preview-img">';
-      }
-      if (note.content) {
-        html += '<div class="note-preview-text">' + escapeHtml(note.content) + '</div>';
-      }
-
-      preview.innerHTML = html;
-      overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeNote() {
-      document.getElementById('noteOverlay').classList.remove('active');
-      document.body.style.overflow = '';
-    }
-
-    document.getElementById('noteOverlay').addEventListener('click', function(e) {
-      if (e.target === this) closeNote();
-    });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeNote();
-    });
-
+    // scroll-aware nav
     (function() {
       var nav = document.getElementById('topNav');
       var ticking = false;

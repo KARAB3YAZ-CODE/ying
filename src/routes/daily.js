@@ -3,26 +3,42 @@ import { getDaily, saveDaily, getConfig } from '../lib/db.js';
 import { savePhoto } from '../lib/storage.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 
-const COOLDOWN_MS = 24 * 60 * 60 * 1000;
-
-function groupByDate(items) {
-  const groups = [];
-  const byLabel = {};
-  items.slice().reverse().forEach((item) => {
-    const label = new Date(item.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-    if (!byLabel[label]) {
-      byLabel[label] = { label, items: [] };
-      groups.push(byLabel[label]);
-    }
-    byLabel[label].items.push(item);
-  });
-  return groups;
-}
+const MEMBERS = ['Yunus', 'İrem', 'Nursene', 'Gizem'];
 
 function normalize(daily) {
-  if (!daily.entries) daily.entries = [];
-  if (!daily.lastEntryAt) daily.lastEntryAt = null;
+  if (!daily.rounds) daily.rounds = [];
+  if (!daily.activeRound) daily.activeRound = null;
   return daily;
+}
+
+async function getOrCreateActiveRound(daily) {
+  if (daily.activeRound) {
+    const found = daily.rounds.find(r => r.id === daily.activeRound && !r.revealed);
+    if (found) return found;
+  }
+  // Create new round
+  const round = {
+    id: Date.now().toString(36),
+    startDate: new Date().toISOString(),
+    revealed: false,
+    revealedAt: null,
+    entries: [],
+    approvedBy: [],
+  };
+  daily.rounds.push(round);
+  daily.activeRound = round.id;
+  await saveDaily(daily);
+  return round;
+}
+
+function entryStatus(round) {
+  const written = {};
+  round.entries.forEach(e => { written[e.author] = true; });
+  return MEMBERS.map(m => ({
+    name: m,
+    wrote: !!written[m],
+    approved: round.approvedBy.includes(m),
+  }));
 }
 
 export default function dailyRoutes(upload) {
@@ -32,34 +48,33 @@ export default function dailyRoutes(upload) {
     const [raw, config] = await Promise.all([getDaily(), getConfig()]);
     const daily = normalize(raw);
     const member = config.members.find(m => m.name === req.session.member);
+    const round = await getOrCreateActiveRound(daily);
 
-    const now = Date.now();
-    const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
-    const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
-    const canWrite = !lastEntryAt || now >= cooldownUntil;
-    const msLeft = canWrite ? 0 : cooldownUntil - now;
+    const myEntry = round.entries.find(e => e.author === req.session.member);
+    const status = entryStatus(round);
 
     res.render('daily', {
       member: req.session.member,
       photo: member?.photo || null,
       config,
-      canWrite,
-      msLeft,
-      lastEntryAuthor: daily.lastEntryAt
-        ? daily.entries[daily.entries.length - 1]?.author : null,
-      entries: daily.entries,
-      groupedEntries: groupByDate(daily.entries),
+      round,
+      myEntry,
+      status,
+      allApproved: round.approvedBy.length >= MEMBERS.length,
+      totalMembers: MEMBERS.length,
+      previousRounds: daily.rounds.filter(r => r.revealed).reverse(),
     });
   }));
 
   router.get('/status', asyncHandler(async (req, res) => {
     const daily = normalize(await getDaily());
-    const now = Date.now();
-    const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
-    const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
-    const canWrite = !lastEntryAt || now >= cooldownUntil;
-    const msLeft = canWrite ? 0 : cooldownUntil - now;
-    res.json({ canWrite, msLeft, entryCount: daily.entries.length });
+    const round = await getOrCreateActiveRound(daily);
+    res.json({
+      status: entryStatus(round),
+      allApproved: round.approvedBy.length >= MEMBERS.length,
+      revealed: round.revealed,
+      id: round.id,
+    });
   }));
 
   router.post('/', upload.single('photo'), asyncHandler(async (req, res) => {
@@ -69,15 +84,14 @@ export default function dailyRoutes(upload) {
     if ((!content || !content.trim()) && !file) return res.redirect('/daily');
 
     const daily = normalize(await getDaily());
-    const now = Date.now();
-    const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
-    const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
+    const round = await getOrCreateActiveRound(daily);
+    const author = req.session.member;
 
-    if (lastEntryAt && now < cooldownUntil) return res.redirect('/daily');
+    // Check if already wrote this round
+    if (round.entries.find(e => e.author === author)) return res.redirect('/daily');
 
     const entry = {
-      id: Date.now().toString(36),
-      author: req.session.member,
+      author,
       createdAt: new Date().toISOString(),
     };
 
@@ -89,8 +103,40 @@ export default function dailyRoutes(upload) {
       entry.photo = await savePhoto(file);
     }
 
-    daily.lastEntryAt = new Date().toISOString();
-    daily.entries.push(entry);
+    round.entries.push(entry);
+
+    // Auto-approve when writing
+    if (!round.approvedBy.includes(author)) {
+      round.approvedBy.push(author);
+    }
+
+    // Check if all approved → reveal
+    if (round.approvedBy.length >= MEMBERS.length) {
+      round.revealed = true;
+      round.revealedAt = new Date().toISOString();
+    }
+
+    await saveDaily(daily);
+    res.redirect('/daily');
+  }));
+
+  router.post('/approve', asyncHandler(async (req, res) => {
+    const daily = normalize(await getDaily());
+    const round = await getOrCreateActiveRound(daily);
+    const author = req.session.member;
+
+    // Must have written first
+    if (!round.entries.find(e => e.author === author)) return res.redirect('/daily');
+
+    if (!round.approvedBy.includes(author)) {
+      round.approvedBy.push(author);
+    }
+
+    if (round.approvedBy.length >= MEMBERS.length) {
+      round.revealed = true;
+      round.revealedAt = new Date().toISOString();
+    }
+
     await saveDaily(daily);
     res.redirect('/daily');
   }));
