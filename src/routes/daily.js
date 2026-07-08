@@ -19,11 +19,18 @@ function groupByDate(items) {
   return groups;
 }
 
+function normalize(daily) {
+  if (!daily.entries) daily.entries = [];
+  if (!daily.lastEntryAt) daily.lastEntryAt = null;
+  return daily;
+}
+
 export default function dailyRoutes(upload) {
   const router = Router();
 
   router.get('/', asyncHandler(async (req, res) => {
-    const [daily, config] = await Promise.all([getDaily(), getConfig()]);
+    const [raw, config] = await Promise.all([getDaily(), getConfig()]);
+    const daily = normalize(raw);
     const member = config.members.find(m => m.name === req.session.member);
 
     const now = Date.now();
@@ -46,7 +53,7 @@ export default function dailyRoutes(upload) {
   }));
 
   router.get('/status', asyncHandler(async (req, res) => {
-    const daily = await getDaily();
+    const daily = normalize(await getDaily());
     const now = Date.now();
     const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
     const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
@@ -61,7 +68,7 @@ export default function dailyRoutes(upload) {
 
     if ((!content || !content.trim()) && !file) return res.redirect('/daily');
 
-    const daily = await getDaily();
+    const daily = normalize(await getDaily());
     const now = Date.now();
     const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
     const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
