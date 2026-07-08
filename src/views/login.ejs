@@ -14,7 +14,7 @@
 
     <div class="profile-grid">
       <% members.forEach(function(m) { %>
-        <button class="profile-card" data-name="<%= m.name %>">
+        <button class="profile-card" data-name="<%= m.name %>" data-haspassword="<%= m.password ? '1' : '0' %>">
           <div class="profile-avatar" style="background: linear-gradient(135deg, <%= m.name === 'Yunus' ? '#e50914,#b20710' : m.name === 'İrem' ? '#e87c03,#b85d00' : m.name === 'Nursene' ? '#5fa33e,#3d7a23' : '#0080ff,#0052b3' %>);<%= m.photo ? ' background-image: url(' + m.photo + '); background-size: cover; background-position: center;' : '' %>">
             <span class="avatar-initial"><%= m.name[0] %></span>
           </div>
@@ -26,14 +26,14 @@
 
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <h2>Hoş geldin</h2>
+      <h2 id="modalTitle">Hoş geldin</h2>
       <span class="modal-name" id="modalName"></span>
       <form method="POST" action="/login">
         <input type="hidden" name="name" id="inputName">
         <input type="password" name="password" id="inputPassword" placeholder="Şifreni gir" required autocomplete="off">
         <% if (locals.error) { %><div class="error"><%= error %></div><% } %>
         <div class="error" id="clientError" style="display:none"></div>
-        <button type="submit" class="btn-primary">Giriş Yap</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Giriş Yap</button>
         <button type="button" class="btn-cancel" id="cancelBtn">İptal</button>
       </form>
     </div>
@@ -43,17 +43,32 @@
     (function() {
       var overlay = document.getElementById('modalOverlay');
       var modalName = document.getElementById('modalName');
+      var modalTitle = document.getElementById('modalTitle');
       var inputName = document.getElementById('inputName');
       var inputPassword = document.getElementById('inputPassword');
+      var submitBtn = document.getElementById('submitBtn');
       var cancelBtn = document.getElementById('cancelBtn');
       var clientError = document.getElementById('clientError');
 
       document.querySelectorAll('.profile-card').forEach(function(card) {
         card.addEventListener('click', function() {
-          modalName.textContent = this.dataset.name;
-          inputName.value = this.dataset.name;
+          var name = this.dataset.name;
+          var hasPassword = this.dataset.haspassword === '1';
+          modalName.textContent = name;
+          inputName.value = name;
           inputPassword.value = '';
           clientError.style.display = 'none';
+
+          if (hasPassword) {
+            modalTitle.textContent = 'Hoş geldin';
+            inputPassword.placeholder = 'Şifreni gir';
+            submitBtn.textContent = 'Giriş Yap';
+          } else {
+            modalTitle.textContent = 'İlk Giriş';
+            inputPassword.placeholder = 'Yeni şifreni belirle (en az 3 karakter)';
+            submitBtn.textContent = 'Şifre Belirle';
+          }
+
           overlay.classList.add('active');
           setTimeout(function() { inputPassword.focus(); }, 150);
         });

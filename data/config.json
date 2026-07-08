@@ -1,8 +1,24 @@
 {
   "members": [
-    { "name": "Yunus", "password": "yunus123", "photo": "/uploads/yunus.jpeg" },
-    { "name": "İrem", "password": "irem123", "photo": "/uploads/irem.jpeg" },
-    { "name": "Nursene", "password": "nursene123", "photo": "/uploads/nuni.jpeg" },
-    { "name": "Gizem", "password": "gizem123", "photo": "/uploads/gizem.jpeg" }
+    {
+      "name": "Yunus",
+      "password": "yunus123",
+      "photo": "/uploads/yunus.jpeg"
+    },
+    {
+      "name": "İrem",
+      "password": "irem123",
+      "photo": "/uploads/irem.jpeg"
+    },
+    {
+      "name": "Nursene",
+      "password": "nursene123",
+      "photo": "/uploads/nuni.jpeg"
+    },
+    {
+      "name": "Gizem",
+      "password": "gizem123",
+      "photo": "/uploads/gizem.jpeg"
+    }
   ]
 }
