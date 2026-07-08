@@ -725,10 +725,23 @@ body {
 
 .daily-status-card {
   margin: 0 5% 1.5rem;
-  background: #1a1a1a;
+  background: linear-gradient(155deg, #202020 0%, #161616 100%);
   border: 1px solid #2a2a2a;
-  border-radius: 12px;
+  border-radius: 18px;
   padding: 1.5rem;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.daily-status-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(229,9,20,0.55), transparent);
 }
 
 .daily-status-card h3 {
@@ -750,16 +763,19 @@ body {
 }
 
 .daily-vote-chip {
-  background: #2a2a2a;
+  background: rgba(255,255,255,0.05);
   color: #999;
-  padding: 0.3rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 999px;
   font-size: 0.78rem;
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: all 0.2s;
 }
 
 .daily-vote-chip.voted {
-  background: rgba(94,163,62,0.2);
+  background: rgba(94,163,62,0.16);
   color: #8fd66a;
+  border-color: rgba(94,163,62,0.35);
 }
 
 .daily-today {
@@ -791,10 +807,11 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: #1a1a1a;
-  padding: 0.7rem 1rem;
-  border-radius: 8px;
-  margin: 0 5% 0.5rem;
+  background: linear-gradient(155deg, #1e1e1e 0%, #161616 100%);
+  border: 1px solid #262626;
+  padding: 0.75rem 1.1rem;
+  border-radius: 14px;
+  margin: 0 5% 0.6rem;
   font-size: 0.83rem;
   color: #ccc;
 }
@@ -828,10 +845,23 @@ body {
 /* ── HEDEFLER (time-locked goals) ── */
 .goal-category {
   margin: 0 5% 1.5rem;
-  background: #1a1a1a;
+  background: linear-gradient(155deg, #202020 0%, #161616 100%);
   border: 1px solid #2a2a2a;
-  border-radius: 12px;
+  border-radius: 18px;
   padding: 1.5rem;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.goal-category::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(229,9,20,0.55), transparent);
 }
 
 .goal-category-header {
@@ -868,9 +898,10 @@ body {
 }
 
 .goal-entry {
-  background: #222;
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 0.9rem 1.1rem;
 }
 
 .goal-entry-author {
@@ -1200,6 +1231,138 @@ body {
 
 .compose-btn:active {
   background: #f40612;
+}
+
+/* ── FAB (yeni anı ekle) ── */
+.fab-add {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #e50914;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(229,9,20,0.45), 0 2px 10px rgba(0,0,0,0.35);
+  cursor: pointer;
+  z-index: 45;
+  transition: transform 0.2s;
+}
+
+.fab-add svg {
+  width: 26px;
+  height: 26px;
+}
+
+.fab-add:active {
+  transform: scale(0.9);
+}
+
+/* ── COMPOSE OVERLAY (Instagram story tarzi: foto -> onizleme -> aciklama) ── */
+.compose-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 200;
+}
+
+.compose-overlay.active {
+  display: flex;
+  animation: noteFade 0.2s ease;
+}
+
+.compose-overlay form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.compose-overlay-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: calc(1rem + env(safe-area-inset-top)) 1rem 1rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.compose-overlay-close {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.compose-overlay-share {
+  background: #e50914;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 0.55rem 1.3rem;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.compose-overlay-share:active {
+  background: #f40612;
+}
+
+.compose-overlay-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.compose-overlay-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.compose-overlay-caption {
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 1rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: none;
+  min-height: 76px;
+  flex-shrink: 0;
+}
+
+.compose-overlay-caption::placeholder {
+  color: #888;
+}
+
+.compose-overlay-caption:focus {
+  outline: none;
+  background: rgba(255,255,255,0.1);
+}
+
+@media (max-width: 640px) {
+  .fab-add {
+    bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* ── ROWS (Netflix style) ── */
@@ -1689,16 +1852,11 @@ body {
   .daily-status-card,
   .goal-category,
   .daily-already-wrote {
-    border-radius: 16px;
     margin-left: 4%;
     margin-right: 4%;
   }
-  .daily-pending-item,
   .admin-item {
     border-radius: 12px;
-  }
-  .goal-entry {
-    border-radius: 10px;
   }
   .daily-vote-chip {
     font-size: 0.74rem;
