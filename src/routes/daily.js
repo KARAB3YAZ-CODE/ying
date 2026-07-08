@@ -67,13 +67,18 @@ export default function dailyRoutes(upload) {
   }));
 
   router.get('/status', asyncHandler(async (req, res) => {
-    const daily = normalize(await getDaily());
-    const round = await getOrCreateActiveRound(daily);
+    const raw = await getDaily();
+    const daily = normalize(raw);
+    let round = null;
+    if (daily.activeRound) {
+      round = daily.rounds.find(r => r.id === daily.activeRound && !r.revealed);
+    }
+    if (!round) round = daily.rounds[daily.rounds.length - 1] || null;
     res.json({
-      status: entryStatus(round),
-      allApproved: round.approvedBy.length >= MEMBERS.length,
-      revealed: round.revealed,
-      id: round.id,
+      status: round ? entryStatus(round) : [],
+      allApproved: round ? round.approvedBy.length >= MEMBERS.length : false,
+      revealed: round ? round.revealed : false,
+      id: round ? round.id : null,
     });
   }));
 
@@ -104,17 +109,6 @@ export default function dailyRoutes(upload) {
     }
 
     round.entries.push(entry);
-
-    // Auto-approve when writing
-    if (!round.approvedBy.includes(author)) {
-      round.approvedBy.push(author);
-    }
-
-    // Check if all approved → reveal
-    if (round.approvedBy.length >= MEMBERS.length) {
-      round.revealed = true;
-      round.revealedAt = new Date().toISOString();
-    }
 
     await saveDaily(daily);
     res.redirect('/daily');

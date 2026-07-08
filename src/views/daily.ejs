@@ -11,13 +11,32 @@
     .daily-status-card h3 .lock-icon { font-size: 0.9rem; }
     .daily-status-card .sub { color: #999; font-size: 0.85rem; margin-bottom: 1rem; }
 
-    .daily-writers { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem; }
-    .daily-writer { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; padding: 0.3rem 0; }
-    .daily-writer .check { color: #8fd66a; font-weight: 700; width: 1.2rem; text-align: center; flex-shrink: 0; }
-    .daily-writer .pending { color: #555; width: 1.2rem; text-align: center; flex-shrink: 0; }
+    .daily-writers { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.2rem; }
+    .daily-writer { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; padding: 0.25rem 0; }
+    .daily-writer .icon { width: 1.2rem; text-align: center; flex-shrink: 0; font-weight: 700; }
+    .daily-writer .icon.wrote { color: #8fd66a; }
+    .daily-writer .icon.pending { color: #444; }
     .daily-writer .name { color: #ddd; }
     .daily-writer .name.muted { color: #555; }
-    .daily-writer .approve-badge { font-size: 0.65rem; background: rgba(94,163,62,0.15); color: #8fd66a; padding: 0.1rem 0.5rem; border-radius: 999px; margin-left: 0.3rem; }
+
+    /* Toggle switch for approve */
+    .daily-toggle-wrap { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.3rem; }
+    .daily-toggle { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+    .daily-toggle input { opacity: 0; width: 0; height: 0; }
+    .daily-toggle .slider {
+      position: absolute; inset: 0; cursor: pointer;
+      background: #333; border-radius: 26px; transition: 0.3s;
+    }
+    .daily-toggle .slider::before {
+      content: ''; position: absolute; left: 3px; bottom: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #666; transition: 0.3s;
+    }
+    .daily-toggle input:checked + .slider { background: #8fd66a; }
+    .daily-toggle input:checked + .slider::before { background: #fff; transform: translateX(22px); }
+    .daily-toggle input:disabled + .slider { opacity: 0.4; cursor: default; }
+    .daily-toggle-label { font-size: 0.85rem; color: #999; }
+    .daily-toggle-label.on { color: #8fd66a; font-weight: 600; }
 
     .daily-section-label { color: #777; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.4rem; }
 
@@ -25,9 +44,6 @@
     .daily-progress-bar { flex: 1; height: 4px; background: #2a2a2a; border-radius: 3px; overflow: hidden; }
     .daily-progress-bar .fill { height: 100%; background: #8fd66a; border-radius: 3px; transition: width 0.4s ease; }
     .daily-progress-label { font-size: 0.78rem; color: #999; flex-shrink: 0; }
-
-    .daily-approve-btn { background: #8fd66a; color: #0d0d0d; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
-    .daily-approve-btn:active { transform: scale(0.96); background: #7ac05a; }
 
     .daily-entry { background: linear-gradient(155deg, #1e1e1e 0%, #161616 100%); border: 1px solid #262626; border-radius: 14px; padding: 1rem 1.2rem; margin: 0 5% 0.6rem; }
     .daily-entry-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.3rem; }
@@ -39,14 +55,22 @@
     .daily-round-label { display: block; color: #666; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 1.2rem 5% 0.5rem; }
     .daily-round-label:first-of-type { margin-top: 0; }
 
-    .daily-locked-entries { margin: 0 5% 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .daily-locked-entry { display: flex; align-items: center; gap: 0.6rem; color: #555; font-size: 0.85rem; padding: 0.6rem 0.9rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid #222; }
+    .daily-locked-entries { margin: 0 5% 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .daily-locked-entry { display: flex; align-items: center; gap: 0.6rem; color: #555; font-size: 0.85rem; padding: 0.5rem 0.9rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid #222; }
     .daily-locked-entry .lock { color: #444; flex-shrink: 0; }
     .daily-locked-entry .author { color: #777; }
 
     .daily-empty { color: #555; font-size: 0.85rem; text-align: center; padding: 1.5rem 5%; }
 
     .daily-own-check { color: #8fd66a; font-weight: 600; font-size: 0.85rem; margin-top: 0.3rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+
+    .daily-appr-info { font-size: 0.78rem; color: #777; margin-top: 0.5rem; }
+
+    .daily-reveal-banner {
+      text-align: center; padding: 0.8rem; margin: 0.5rem 5% 1rem;
+      background: rgba(94,163,62,0.12); border: 1px solid rgba(94,163,62,0.25);
+      border-radius: 12px; color: #8fd66a; font-weight: 600; font-size: 0.9rem;
+    }
 
     @media (max-width: 640px) {
       .daily-entry { margin-left: 4%; margin-right: 4%; }
@@ -59,48 +83,51 @@
     <%- include('_nav', { member: member, photo: photo, active: 'daily' }) %>
 
     <div class="browse-content daily-content">
-      <section class="daily-status-card">
+      <section class="daily-status-card" id="statusCard">
         <h3>
-          <span class="lock-icon"><%= round.revealed ? '🔓' : '🔒' %></span>
+          <span class="lock-icon" id="lockIcon"><%= round.revealed ? '🔓' : '🔒' %></span>
           Günlük
         </h3>
-        <p class="sub">
+        <p class="sub" id="statusSub">
           <% if (round.revealed) { %>
-            Bu turdaki notlar açıklandı! 🎉
+            Bu tur açıklandı! 🎉
           <% } else { %>
-            Notlar kilitli. Herkes yazıp onaylayınca bütün notlar sırayla açılacak.
+            Herkes yazdıktan sonra onaylayınca notlar açılacak.
           <% } %>
         </p>
 
-        <!-- Writer status list -->
+        <!-- Writer / approval status -->
         <div class="daily-section-label">Durum</div>
-        <div class="daily-writers">
+        <div class="daily-writers" id="writerList">
           <% status.forEach(function(s) { %>
-            <div class="daily-writer">
-              <% if (s.wrote) { %>
-                <span class="check">✓</span>
+            <div class="daily-writer" data-name="<%= s.name %>">
+              <% if (s.wrote && s.approved) { %>
+                <span class="icon wrote">✓</span>
+              <% } else if (s.wrote) { %>
+                <span class="icon wrote">✓</span>
               <% } else { %>
-                <span class="pending">○</span>
+                <span class="icon pending">○</span>
               <% } %>
               <span class="name <%= s.wrote ? '' : 'muted' %>"><%= s.name %></span>
-              <% if (s.wrote && s.approved) { %>
-                <span class="approve-badge">onayladı</span>
+              <% if (s.approved) { %>
+                <span style="font-size:0.65rem;color:#8fd66a;margin-left:0.2rem">onayladı</span>
               <% } %>
             </div>
           <% }) %>
         </div>
 
-        <!-- Approval progress -->
-        <% if (!round.revealed) { %>
-          <div class="daily-progress">
-            <div class="daily-progress-bar">
-              <div class="fill" style="width: <%= (round.approvedBy.length / totalMembers) * 100 %>%"></div>
-            </div>
-            <span class="daily-progress-label"><%= round.approvedBy.length %>/<%= totalMembers %> onay</span>
+        <!-- Progress bar -->
+        <div class="daily-progress" id="progressBar">
+          <div class="daily-progress-bar">
+            <div class="fill" style="width: <%= (round.approvedBy.length / totalMembers) * 100 %>%" id="progressFill"></div>
           </div>
-        <% } %>
+          <span class="daily-progress-label" id="progressLabel"><%= round.approvedBy.length %>/<%= totalMembers %> onay</span>
+        </div>
 
-        <!-- Compose form (if not written yet) -->
+        <!-- Revealed banner (hidden initially) -->
+        <div class="daily-reveal-banner" id="revealBanner" style="display:<%= round.revealed ? 'block' : 'none' %>">Notlar açıldı! 🎉</div>
+
+        <!-- Compose form -->
         <% if (!myEntry) { %>
           <form method="POST" action="/daily" enctype="multipart/form-data" class="compose-form" style="margin-top:0.5rem">
             <input name="content" placeholder="Bugün ne oldu?" class="compose-input">
@@ -112,17 +139,25 @@
           </form>
         <% } else { %>
           <div class="daily-own-check">✓ Bu turda yazdın</div>
-          <% if (!round.approvedBy.includes(member)) { %>
-            <form method="POST" action="/daily/approve" style="margin-top:0.5rem">
-              <button type="submit" class="daily-approve-btn">✓ Onayla</button>
-            </form>
-          <% } %>
+        <% } %>
+
+        <!-- Approve toggle (only if wrote and not yet approved) -->
+        <% if (myEntry && !round.approvedBy.includes(member)) { %>
+          <div class="daily-toggle-wrap">
+            <label class="daily-toggle">
+              <input type="checkbox" id="approveToggle">
+              <span class="slider"></span>
+            </label>
+            <span class="daily-toggle-label" id="toggleLabel">Onayla</span>
+          </div>
+          <div class="daily-appr-info">Onay verdiğinde herkes görecek, geri alınamaz.</div>
         <% } %>
       </section>
 
-      <!-- Revealed entries for this round -->
+      <!-- Revealed entries -->
       <% if (round.revealed && round.entries.length > 0) { %>
         <span class="daily-round-label">Bu Tur</span>
+        <div id="revealedEntries">
         <% round.entries.sort(function(a,b) { return new Date(a.createdAt) - new Date(b.createdAt); }).forEach(function(entry) { %>
           <div class="daily-entry">
             <div class="daily-entry-header">
@@ -137,9 +172,10 @@
             <% } %>
           </div>
         <% }) %>
+        </div>
       <% } %>
 
-      <!-- Not revealed yet: show who wrote as locked entries -->
+      <!-- Locked entries -->
       <% if (!round.revealed && round.entries.length > 0) { %>
         <span class="daily-round-label">Yazılanlar (kilitli)</span>
         <div class="daily-locked-entries">
@@ -180,17 +216,92 @@
   </div>
 
   <script>
-    (function() {
-      var lastId = '<%= round.id %>';
-      setInterval(function() {
-        if (document.hidden) return;
-        fetch('/daily/status').then(function(r) { return r.json(); }).then(function(d) {
-          if (d.id !== lastId || d.revealed !== <%= round.revealed %>) location.reload();
-        }).catch(function() {});
-      }, 5000);
-    })();
+    var currentMember = '<%= member %>';
+    var totalMembers = <%= totalMembers %>;
+    var roundId = '<%= round.id %>';
+    var iApproved = <%= round.approvedBy.includes(member) ? 'true' : 'false' %>;
+    var iWrote = <%= myEntry ? 'true' : 'false' %>;
 
-    // scroll-aware nav
+    var approveToggle = document.getElementById('approveToggle');
+    var toggleLabel = document.getElementById('toggleLabel');
+
+    // Approve toggle handler
+    if (approveToggle) {
+      approveToggle.addEventListener('change', function() {
+        if (this.checked) {
+          fetch('/daily/approve', { method: 'POST' }).then(function() {
+            iApproved = true;
+            toggleLabel.textContent = 'Onaylandı ✓';
+            toggleLabel.className = 'daily-toggle-label on';
+            approveToggle.disabled = true;
+            // Trigger a status refresh
+            refreshStatus();
+          }).catch(function() {
+            approveToggle.checked = false;
+          });
+        }
+      });
+    }
+
+    // Real-time status refresh
+    function refreshStatus() {
+      fetch('/daily/status').then(function(r) { return r.json(); }).then(function(d) {
+        // Check if round changed (revealed or new round)
+        if (d.id !== roundId) { location.reload(); return; }
+        if (d.revealed) { location.reload(); return; }
+
+        // Update writer list
+        var writerList = document.getElementById('writerList');
+        if (writerList) {
+          d.status.forEach(function(s) {
+            var row = writerList.querySelector('[data-name="' + s.name + '"]');
+            if (!row) return;
+            var nameEl = row.querySelector('.name');
+            var iconEl = row.querySelector('.icon');
+
+            if (s.wrote) {
+              nameEl.classList.remove('muted');
+              if (iconEl) { iconEl.textContent = '✓'; iconEl.className = 'icon wrote'; }
+            }
+
+            // Show/hide approve badge
+            var apprBadge = row.querySelector('.appr-badge');
+            if (s.approved) {
+              if (!apprBadge) {
+                var b = document.createElement('span');
+                b.className = 'appr-badge';
+                b.style.cssText = 'font-size:0.65rem;color:#8fd66a;margin-left:0.2rem';
+                b.textContent = 'onayladı';
+                nameEl.insertAdjacentElement('afterend', b);
+              }
+            }
+          });
+        }
+
+        // Update progress bar
+        var fill = document.getElementById('progressFill');
+        var label = document.getElementById('progressLabel');
+        if (fill && label) {
+          var count = d.status.filter(function(s) { return s.approved; }).length;
+          var pct = (count / totalMembers) * 100;
+          fill.style.width = pct + '%';
+          label.textContent = count + '/' + totalMembers + ' onay';
+        }
+
+        // Check if all approved now
+        if (d.allApproved && !d.revealed) {
+          // Will reload on next tick when d.revealed = true
+        }
+      }).catch(function() {});
+    }
+
+    // Poll every 3 seconds
+    setInterval(function() {
+      if (document.hidden) return;
+      refreshStatus();
+    }, 3000);
+
+    // Scroll-aware nav
     (function() {
       var nav = document.getElementById('topNav');
       var ticking = false;
