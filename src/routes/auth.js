@@ -49,4 +49,14 @@ router.post('/logout', (req, res) => {
   res.redirect('/');
 });
 
+// One-time: clear all passwords so everyone sets their own on next login
+// Call via: curl -X POST https://ying.tr/reset-passwords?key=yingreset2026
+router.post('/reset-passwords', asyncHandler(async (req, res) => {
+  if (req.query.key !== 'yingreset2026') return res.status(403).send('Yetkisiz');
+  const config = await getConfig();
+  config.members.forEach(m => { m.password = ''; });
+  await saveConfig(config);
+  res.send('Tüm şifreler sıfırlandı. Her kullanıcı ilk girişinde kendi şifresini belirleyecek.');
+}));
+
 export default router;

@@ -2,22 +2,22 @@
   "members": [
     {
       "name": "Yunus",
-      "password": "yunus123",
+      "password": "newpass",
       "photo": "/uploads/yunus.jpeg"
     },
     {
       "name": "İrem",
-      "password": "irem123",
+      "password": "",
       "photo": "/uploads/irem.jpeg"
     },
     {
       "name": "Nursene",
-      "password": "nursene123",
+      "password": "",
       "photo": "/uploads/nuni.jpeg"
     },
     {
       "name": "Gizem",
-      "password": "gizem123",
+      "password": "",
       "photo": "/uploads/gizem.jpeg"
     }
   ]
