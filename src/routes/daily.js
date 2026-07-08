@@ -114,6 +114,12 @@ export default function dailyRoutes(upload) {
     res.redirect('/daily');
   }));
 
+  router.post('/reset', asyncHandler(async (req, res) => {
+    if (req.query.key !== 'yingreset2026') return res.status(403).send('Yetkisiz');
+    await saveDaily({ rounds: [], activeRound: null });
+    res.send('Günlük sıfırlandı');
+  }));
+
   router.post('/approve', asyncHandler(async (req, res) => {
     const daily = normalize(await getDaily());
     const round = await getOrCreateActiveRound(daily);
