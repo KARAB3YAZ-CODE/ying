@@ -751,8 +751,33 @@ body {
 
 .daily-status-card p {
   color: #999;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   margin-bottom: 1rem;
+}
+
+.daily-countdown {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: #e50914;
+  text-shadow: 0 0 30px rgba(229,9,20,0.3);
+  margin: 0.5rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-sep {
+  color: #555;
+  margin: 0 2px;
+}
+
+.daily-who-wrote {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.3rem;
+}
+
+.daily-who-wrote strong {
+  color: #ccc;
 }
 
 .daily-votes {
@@ -1860,6 +1885,10 @@ body {
   }
   .daily-vote-chip {
     font-size: 0.74rem;
+  }
+  .daily-countdown {
+    font-size: 2.2rem;
+    letter-spacing: 2px;
   }
   .goal-form button,
   .daily-status-card form button {

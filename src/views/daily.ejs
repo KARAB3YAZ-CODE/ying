@@ -13,39 +13,21 @@
 
     <div class="browse-content daily-content">
       <section class="daily-status-card">
-        <% if (pendingCount === 0) { %>
-        <h3>Günlük henüz boş</h3>
-        <p>Aşağıdan bir not veya fotoğraf ekleyerek biriktirmeye başlayın. İstediğiniz an hep birlikte açmaya karar verebilirsiniz.</p>
+        <h3>📖 Günlük</h3>
+        <% if (canWrite) { %>
+          <p>Günlüğe yazma sırası sende — yeni bir giriş ekleyebilirsin.</p>
         <% } else { %>
-        <h3>🔒 <%= pendingCount %> günlük girişi onay bekliyor</h3>
-        <p>İçerikler gizli — herkes onaylayınca hepsi birden, tarihli şekilde açılacak.</p>
-        <div class="daily-votes">
-          <% config.members.forEach(function(m) { %>
-          <span class="daily-vote-chip <%= votes.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= votes.includes(m.name) ? ' ✓' : '' %></span>
-          <% }) %>
-        </div>
-        <form method="POST" action="/daily/vote">
-          <button type="submit" class="hero-btn hero-btn-primary">
-            <%= votes.includes(member) ? 'Onayımı geri al' : ('Onayla ve aç (' + votes.length + '/' + config.members.length + ')') %>
-          </button>
-        </form>
-        <% } %>
-
-        <div class="daily-today">
-          <span class="daily-today-label">Bugün kim yazdı</span>
-          <div class="daily-votes">
-            <% config.members.forEach(function(m) { %>
-            <span class="daily-vote-chip <%= writtenToday.includes(m.name) ? 'voted' : '' %>"><%= m.name %><%= writtenToday.includes(m.name) ? ' ✓' : '' %></span>
-            <% }) %>
+          <p>Sıradaki günlük girişine kalan süre:</p>
+          <div class="daily-countdown" id="countdown">
+            <span id="cd-hours">00</span><span class="cd-sep">:</span>
+            <span id="cd-minutes">00</span><span class="cd-sep">:</span>
+            <span id="cd-seconds">00</span>
           </div>
-        </div>
+          <p class="daily-who-wrote">Son yazan: <strong><%= lastEntryAuthor %></strong></p>
+        <% } %>
       </section>
 
-      <% if (alreadyWroteToday) { %>
-      <div class="daily-status-card daily-already-wrote">
-        <p>✓ Bugünkü günlüğünü zaten yazdın — yarın tekrar yazabilirsin.</p>
-      </div>
-      <% } else { %>
+      <% if (canWrite) { %>
       <div class="compose-bar">
         <form method="POST" action="/daily" enctype="multipart/form-data" class="compose-form">
           <input name="content" placeholder="Bugün ne oldu?" class="compose-input">
@@ -58,23 +40,12 @@
       </div>
       <% } %>
 
-      <% if (myPending.length > 0) { %>
+      <% if (entries.length === 0) { %>
+      <div class="row-empty">Henüz hiç günlük girişi yok — ilk girişi sen yap</div>
+      <% } else { %>
       <section class="row">
-        <div class="row-header"><h3>Benim bekleyen girişlerim</h3></div>
-        <% myPending.forEach(function(p) { %>
-        <div class="daily-pending-item">
-          <span><%= new Date(p.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) %></span>
-          <span><%= p.content ? p.content.slice(0, 40) : (p.photo ? '📷 Fotoğraf' : '') %></span>
-          <form method="POST" action="/daily/delete/<%= encodeURIComponent(p.id) %>"><button type="submit">Sil</button></form>
-        </div>
-        <% }) %>
-      </section>
-      <% } %>
-
-      <% if (revealed.length > 0) { %>
-      <section class="row">
-        <div class="row-header"><h3>Açılan Günlükler</h3></div>
-        <% groupedRevealed.forEach(function(group) { %>
+        <div class="row-header"><h3>Geçmiş Günlükler</h3></div>
+        <% groupedEntries.forEach(function(group) { %>
         <h4 class="daily-date-header"><%= group.label %></h4>
         <div class="row-scroll">
           <% group.items.forEach(function(note) { %>
@@ -93,8 +64,6 @@
         </div>
         <% }) %>
       </section>
-      <% } else { %>
-      <div class="row-empty">Henüz açılmış bir günlük yok</div>
       <% } %>
     </div>
   </div>
@@ -104,18 +73,43 @@
   </div>
 
   <script>
-    var revealedData = <%- JSON.stringify(revealed).replace(/</g, '\\u003c') %>;
-    var initialStatus = <%- JSON.stringify({ pendingCount: pendingCount, votes: votes, writtenToday: writtenToday, revealedCount: revealed.length }) %>;
+    var entriesData = <%- JSON.stringify(entries).replace(/</g, '\\u003c') %>;
+    var msLeft = <%- msLeft %>;
 
-    // live sync: poll for changes made from other devices and reload when something moves
     (function() {
-      var lastStatus = JSON.stringify(initialStatus);
+      var cdEl = document.getElementById('countdown');
+      if (!cdEl) return;
+
+      var hEl = document.getElementById('cd-hours');
+      var mEl = document.getElementById('cd-minutes');
+      var sEl = document.getElementById('cd-seconds');
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+
+      function tick() {
+        msLeft = Math.max(0, msLeft - 1000);
+        var totalSec = Math.floor(msLeft / 1000);
+        var h = Math.floor(totalSec / 3600);
+        var m = Math.floor((totalSec % 3600) / 60);
+        var s = totalSec % 60;
+        hEl.textContent = pad(h);
+        mEl.textContent = pad(m);
+        sEl.textContent = pad(s);
+        if (msLeft <= 0) location.reload();
+      }
+
+      setInterval(tick, 1000);
+    })();
+
+    // live sync
+    (function() {
+      var last = null;
       setInterval(function() {
         if (document.hidden) return;
-        fetch('/daily/status').then(function(r) { return r.json(); }).then(function(data) {
-          if (JSON.stringify(data) !== lastStatus) {
-            location.reload();
-          }
+        fetch('/daily/status').then(function(r) { return r.json(); }).then(function(d) {
+          var s = JSON.stringify(d);
+          if (last === null) { last = s; return; }
+          if (s !== last) location.reload();
         }).catch(function() {});
       }, 5000);
     })();
@@ -127,7 +121,7 @@
     }
 
     function openDaily(id) {
-      var note = revealedData.find(function(n) { return n.id === id; });
+      var note = entriesData.find(function(n) { return n.id === id; });
       if (!note) return;
       var overlay = document.getElementById('noteOverlay');
       var preview = document.getElementById('notePreview');

@@ -3,6 +3,8 @@ import { getDaily, saveDaily, getConfig } from '../lib/db.js';
 import { savePhoto } from '../lib/storage.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 
+const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
 function groupByDate(items) {
   const groups = [];
   const byLabel = {};
@@ -17,46 +19,40 @@ function groupByDate(items) {
   return groups;
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function whoWroteToday(pending) {
-  const today = todayStr();
-  return pending.filter(p => p.createdAt.slice(0, 10) === today).map(p => p.author);
-}
-
 export default function dailyRoutes(upload) {
   const router = Router();
 
   router.get('/', asyncHandler(async (req, res) => {
     const [daily, config] = await Promise.all([getDaily(), getConfig()]);
     const member = config.members.find(m => m.name === req.session.member);
-    const myPending = daily.pending.filter(p => p.author === req.session.member);
-    const writtenToday = whoWroteToday(daily.pending);
+
+    const now = Date.now();
+    const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
+    const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
+    const canWrite = !lastEntryAt || now >= cooldownUntil;
+    const msLeft = canWrite ? 0 : cooldownUntil - now;
 
     res.render('daily', {
       member: req.session.member,
       photo: member?.photo || null,
       config,
-      pendingCount: daily.pending.length,
-      votes: daily.votes,
-      writtenToday,
-      alreadyWroteToday: writtenToday.includes(req.session.member),
-      myPending,
-      revealed: daily.revealed,
-      groupedRevealed: groupByDate(daily.revealed),
+      canWrite,
+      msLeft,
+      lastEntryAuthor: daily.lastEntryAt
+        ? daily.entries[daily.entries.length - 1]?.author : null,
+      entries: daily.entries,
+      groupedEntries: groupByDate(daily.entries),
     });
   }));
 
   router.get('/status', asyncHandler(async (req, res) => {
     const daily = await getDaily();
-    res.json({
-      pendingCount: daily.pending.length,
-      votes: daily.votes,
-      writtenToday: whoWroteToday(daily.pending),
-      revealedCount: daily.revealed.length,
-    });
+    const now = Date.now();
+    const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
+    const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
+    const canWrite = !lastEntryAt || now >= cooldownUntil;
+    const msLeft = canWrite ? 0 : cooldownUntil - now;
+    res.json({ canWrite, msLeft, entryCount: daily.entries.length });
   }));
 
   router.post('/', upload.single('photo'), asyncHandler(async (req, res) => {
@@ -66,9 +62,11 @@ export default function dailyRoutes(upload) {
     if ((!content || !content.trim()) && !file) return res.redirect('/daily');
 
     const daily = await getDaily();
-    if (whoWroteToday(daily.pending).includes(req.session.member)) {
-      return res.redirect('/daily');
-    }
+    const now = Date.now();
+    const lastEntryAt = daily.lastEntryAt ? new Date(daily.lastEntryAt).getTime() : null;
+    const cooldownUntil = lastEntryAt ? lastEntryAt + COOLDOWN_MS : 0;
+
+    if (lastEntryAt && now < cooldownUntil) return res.redirect('/daily');
 
     const entry = {
       id: Date.now().toString(36),
@@ -84,38 +82,8 @@ export default function dailyRoutes(upload) {
       entry.photo = await savePhoto(file);
     }
 
-    daily.pending.push(entry);
-    await saveDaily(daily);
-    res.redirect('/daily');
-  }));
-
-  router.post('/delete/:id', asyncHandler(async (req, res) => {
-    const daily = await getDaily();
-    const target = daily.pending.find(p => p.id === req.params.id);
-    if (!target || target.author !== req.session.member) return res.redirect('/daily');
-    daily.pending = daily.pending.filter(p => p.id !== req.params.id);
-    await saveDaily(daily);
-    res.redirect('/daily');
-  }));
-
-  router.post('/vote', asyncHandler(async (req, res) => {
-    const [daily, config] = await Promise.all([getDaily(), getConfig()]);
-    if (daily.pending.length === 0) return res.redirect('/daily');
-
-    const member = req.session.member;
-    if (daily.votes.includes(member)) {
-      daily.votes = daily.votes.filter(v => v !== member);
-    } else {
-      daily.votes.push(member);
-    }
-
-    const allVoted = config.members.every(m => daily.votes.includes(m.name));
-    if (allVoted) {
-      daily.revealed = daily.revealed.concat(daily.pending);
-      daily.pending = [];
-      daily.votes = [];
-    }
-
+    daily.lastEntryAt = new Date().toISOString();
+    daily.entries.push(entry);
     await saveDaily(daily);
     res.redirect('/daily');
   }));
