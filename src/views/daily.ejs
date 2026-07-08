@@ -96,36 +96,21 @@
           <% } %>
         </p>
 
-        <!-- Writer / approval status -->
-        <div class="daily-section-label">Durum</div>
+        <!-- Writer status (kim yazdı / yazmadı) -->
+        <div class="daily-section-label">Not Durumu</div>
         <div class="daily-writers" id="writerList">
           <% status.forEach(function(s) { %>
             <div class="daily-writer" data-name="<%= s.name %>">
-              <% if (s.wrote && s.approved) { %>
-                <span class="icon wrote">✓</span>
-              <% } else if (s.wrote) { %>
+              <% if (s.wrote) { %>
                 <span class="icon wrote">✓</span>
               <% } else { %>
                 <span class="icon pending">○</span>
               <% } %>
               <span class="name <%= s.wrote ? '' : 'muted' %>"><%= s.name %></span>
-              <% if (s.approved) { %>
-                <span style="font-size:0.65rem;color:#8fd66a;margin-left:0.2rem">onayladı</span>
-              <% } %>
+              <% if (s.wrote) { %><span style="font-size:0.62rem;color:#666;margin-left:0.2rem">yazdı</span><% } %>
             </div>
           <% }) %>
         </div>
-
-        <!-- Progress bar -->
-        <div class="daily-progress" id="progressBar">
-          <div class="daily-progress-bar">
-            <div class="fill" style="width: <%= (round.approvedBy.length / totalMembers) * 100 %>%" id="progressFill"></div>
-          </div>
-          <span class="daily-progress-label" id="progressLabel"><%= round.approvedBy.length %>/<%= totalMembers %> onay</span>
-        </div>
-
-        <!-- Revealed banner (hidden initially) -->
-        <div class="daily-reveal-banner" id="revealBanner" style="display:<%= round.revealed ? 'block' : 'none' %>">Notlar açıldı! 🎉</div>
 
         <!-- Compose form -->
         <% if (!myEntry) { %>
@@ -141,17 +126,42 @@
           <div class="daily-own-check">✓ Bu turda yazdın</div>
         <% } %>
 
-        <!-- Approve toggle (only if wrote and not yet approved) -->
-        <% if (myEntry && !round.approvedBy.includes(member)) { %>
-          <div class="daily-toggle-wrap">
-            <label class="daily-toggle">
-              <input type="checkbox" id="approveToggle">
-              <span class="slider"></span>
-            </label>
-            <span class="daily-toggle-label" id="toggleLabel">Onayla</span>
+        <hr style="border:none;border-top:1px solid #222;margin:1rem 0">
+
+        <!-- SEPARATE APPROVE SECTION -->
+        <div class="daily-section-label">Onay Kısmı</div>
+        <p style="color:#777;font-size:0.82rem;margin-bottom:0.6rem">Herkes onay verince notlar açılacak. Onayını istediğin zaman geri çekebilirsin.</p>
+
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.8rem">
+          <% status.forEach(function(s) { %>
+            <div class="daily-writer" data-name="<%= s.name %>" style="justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:0.5rem">
+                <span class="name <%= s.name === member ? '' : 'muted' %>"><%= s.name %></span>
+              </div>
+              <% if (s.name === member) { %>
+                <label class="daily-toggle">
+                  <input type="checkbox" class="approve-cb" data-name="<%= s.name %>" <%= s.approved ? 'checked' : '' %>>
+                  <span class="slider"></span>
+                </label>
+              <% } else { %>
+                <span style="font-size:0.78rem;color:<%= s.approved ? '#8fd66a' : '#555' %>">
+                  <%= s.approved ? 'Onayladı ✓' : 'Bekleniyor...' %>
+                </span>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="daily-progress" id="progressBar">
+          <div class="daily-progress-bar">
+            <div class="fill" style="width: <%= (round.approvedBy.length / totalMembers) * 100 %>%" id="progressFill"></div>
           </div>
-          <div class="daily-appr-info">Onay verdiğinde herkes görecek, geri alınamaz.</div>
-        <% } %>
+          <span class="daily-progress-label" id="progressLabel"><%= round.approvedBy.length %>/<%= totalMembers %> onay</span>
+        </div>
+
+        <!-- Revealed banner -->
+        <div class="daily-reveal-banner" id="revealBanner" style="display:<%= round.revealed ? 'block' : 'none' %>">Tüm notlar açıldı! 🎉</div>
       </section>
 
       <!-- Revealed entries -->
@@ -219,78 +229,77 @@
     var currentMember = '<%= member %>';
     var totalMembers = <%= totalMembers %>;
     var roundId = '<%= round.id %>';
-    var iApproved = <%= round.approvedBy.includes(member) ? 'true' : 'false' %>;
-    var iWrote = <%= myEntry ? 'true' : 'false' %>;
+    var roundRevealed = <%= round.revealed %>;
 
-    var approveToggle = document.getElementById('approveToggle');
-    var toggleLabel = document.getElementById('toggleLabel');
-
-    // Approve toggle handler
-    if (approveToggle) {
-      approveToggle.addEventListener('change', function() {
-        if (this.checked) {
-          fetch('/daily/approve', { method: 'POST' }).then(function() {
-            iApproved = true;
-            toggleLabel.textContent = 'Onaylandı ✓';
-            toggleLabel.className = 'daily-toggle-label on';
-            approveToggle.disabled = true;
-            // Trigger a status refresh
-            refreshStatus();
-          }).catch(function() {
-            approveToggle.checked = false;
-          });
-        }
+    // Approve toggle handlers — every .approve-cb toggles on/off
+    document.querySelectorAll('.approve-cb').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var checked = this.checked;
+        var name = this.dataset.name;
+        fetch('/daily/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+          body: 'approved=' + checked
+        }).then(function(r) { return r.json(); }).then(function(d) {
+          if (d.revealed) { location.reload(); }
+          else { refreshStatus(); }
+        }).catch(function() {
+          cb.checked = !checked; // revert on error
+        });
       });
-    }
+    });
 
     // Real-time status refresh
     function refreshStatus() {
       fetch('/daily/status').then(function(r) { return r.json(); }).then(function(d) {
-        // Check if round changed (revealed or new round)
         if (d.id !== roundId) { location.reload(); return; }
-        if (d.revealed) { location.reload(); return; }
+        if (d.revealed !== roundRevealed) { location.reload(); return; }
 
-        // Update writer list
+        // Update writer list (not section)
         var writerList = document.getElementById('writerList');
         if (writerList) {
           d.status.forEach(function(s) {
             var row = writerList.querySelector('[data-name="' + s.name + '"]');
             if (!row) return;
+            var icon = row.querySelector('.icon');
             var nameEl = row.querySelector('.name');
-            var iconEl = row.querySelector('.icon');
-
-            if (s.wrote) {
-              nameEl.classList.remove('muted');
-              if (iconEl) { iconEl.textContent = '✓'; iconEl.className = 'icon wrote'; }
+            if (icon) {
+              icon.textContent = s.wrote ? '✓' : '○';
+              icon.className = 'icon ' + (s.wrote ? 'wrote' : 'pending');
             }
-
-            // Show/hide approve badge
-            var apprBadge = row.querySelector('.appr-badge');
-            if (s.approved) {
-              if (!apprBadge) {
-                var b = document.createElement('span');
-                b.className = 'appr-badge';
-                b.style.cssText = 'font-size:0.65rem;color:#8fd66a;margin-left:0.2rem';
-                b.textContent = 'onayladı';
-                nameEl.insertAdjacentElement('afterend', b);
-              }
-            }
+            nameEl.className = 'name' + (s.wrote ? '' : ' muted');
           });
         }
+
+        // Update onay section rows
+        d.status.forEach(function(s) {
+          var row = document.querySelector('[data-name="' + s.name + '"]');
+          if (!row) return;
+          // Find the status text or toggle area
+          var lastChild = row.lastElementChild;
+          if (s.name === currentMember) {
+            // update the checkbox
+            var cb = row.querySelector('.approve-cb');
+            if (cb && cb.checked !== s.approved) cb.checked = s.approved;
+          } else {
+            if (lastChild && lastChild.tagName === 'SPAN') {
+              lastChild.textContent = s.approved ? 'Onayladı ✓' : 'Bekleniyor...';
+              lastChild.style.color = s.approved ? '#8fd66a' : '#555';
+            }
+          }
+        });
 
         // Update progress bar
         var fill = document.getElementById('progressFill');
         var label = document.getElementById('progressLabel');
+        var banner = document.getElementById('revealBanner');
         if (fill && label) {
           var count = d.status.filter(function(s) { return s.approved; }).length;
-          var pct = (count / totalMembers) * 100;
-          fill.style.width = pct + '%';
+          fill.style.width = (count / totalMembers * 100) + '%';
           label.textContent = count + '/' + totalMembers + ' onay';
         }
-
-        // Check if all approved now
-        if (d.allApproved && !d.revealed) {
-          // Will reload on next tick when d.revealed = true
+        if (banner) {
+          banner.style.display = d.revealed ? 'block' : 'none';
         }
       }).catch(function() {});
     }

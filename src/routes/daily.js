@@ -13,10 +13,10 @@ function normalize(daily) {
 
 async function getOrCreateActiveRound(daily) {
   if (daily.activeRound) {
-    const found = daily.rounds.find(r => r.id === daily.activeRound && !r.revealed);
+    const found = daily.rounds.find(r => r.id === daily.activeRound);
     if (found) return found;
   }
-  // Create new round
+  // No active round yet — create the first one
   const round = {
     id: Date.now().toString(36),
     startDate: new Date().toISOString(),
@@ -118,20 +118,28 @@ export default function dailyRoutes(upload) {
     const daily = normalize(await getDaily());
     const round = await getOrCreateActiveRound(daily);
     const author = req.session.member;
+    const wantApprove = req.body.approved === 'true' || req.body.approved === true;
 
-    // Must have written first
-    if (!round.entries.find(e => e.author === author)) return res.redirect('/daily');
-
-    if (!round.approvedBy.includes(author)) {
-      round.approvedBy.push(author);
+    if (wantApprove) {
+      if (!round.approvedBy.includes(author)) round.approvedBy.push(author);
+    } else {
+      round.approvedBy = round.approvedBy.filter(a => a !== author);
     }
 
+    // Reveal only when ALL approve
     if (round.approvedBy.length >= MEMBERS.length) {
       round.revealed = true;
-      round.revealedAt = new Date().toISOString();
+      round.revealedAt = round.revealedAt || new Date().toISOString();
+    } else {
+      round.revealed = false;
+      round.revealedAt = null;
     }
 
     await saveDaily(daily);
+    // Accept JSON for AJAX
+    if (req.xhr || req.headers.accept?.includes('json')) {
+      return res.json({ ok: true, approved: wantApprove, revealed: round.revealed });
+    }
     res.redirect('/daily');
   }));
 
