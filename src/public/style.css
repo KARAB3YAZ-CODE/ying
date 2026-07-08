@@ -296,6 +296,27 @@ body {
   min-height: 100dvh;
   padding: 2rem 1.5rem;
   animation: fadeUp 0.6s ease;
+  position: relative;
+  overflow: hidden;
+  background: #141414;
+}
+
+.profile-screen::before {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 900px;
+  height: 900px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(229,9,20,0.1) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profile-screen > * {
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes fadeUp {
@@ -365,8 +386,7 @@ body {
 }
 
 .profile-avatar[style*="background-image"] .avatar-initial {
-  opacity: 0.55;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  opacity: 0;
 }
 
 .profile-avatar::after {
@@ -1506,10 +1526,27 @@ body {
     font-size: 0.88rem;
   }
 
+  .modal-overlay {
+    align-items: flex-end;
+  }
   .modal {
-    padding: 2rem 1.5rem 1.5rem;
-    border-radius: 14px;
-    width: 94%;
+    padding: 1.75rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 100%;
+    animation: sheetUp 0.32s cubic-bezier(0.3, 0.9, 0.2, 1);
+    position: relative;
+  }
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 0.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 3px;
+    background: #444;
   }
   .modal .modal-name {
     font-size: 1.4rem;
